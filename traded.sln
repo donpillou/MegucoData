@@ -1,0 +1,47 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "traded", "traded.vcxproj", "{AFD38CB1-8645-FADE-92F8-1B6C2F08863B}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BitstampUsd", "BitstampUsd.vcxproj", "{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libnstd", "libnstd.vcxproj", "{1D074E03-57E5-6936-E94F-A55DBEEEDABF}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libcurl", "libcurl.vcxproj", "{52083E93-A983-4E94-88B2-7A56C0E8AFDE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Markets", "Markets", "{52C37B61-2A40-8D42-0A70-BF7858AF6636}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{AEB42855-4A0A-CC6C-C503-A2E4DA6AE61A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AFD38CB1-8645-FADE-92F8-1B6C2F08863B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{AFD38CB1-8645-FADE-92F8-1B6C2F08863B}.Debug|Win32.Build.0 = Debug|Win32
+		{AFD38CB1-8645-FADE-92F8-1B6C2F08863B}.Release|Win32.ActiveCfg = Release|Win32
+		{AFD38CB1-8645-FADE-92F8-1B6C2F08863B}.Release|Win32.Build.0 = Release|Win32
+		{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}.Debug|Win32.Build.0 = Debug|Win32
+		{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}.Release|Win32.ActiveCfg = Release|Win32
+		{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}.Release|Win32.Build.0 = Release|Win32
+		{1D074E03-57E5-6936-E94F-A55DBEEEDABF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1D074E03-57E5-6936-E94F-A55DBEEEDABF}.Debug|Win32.Build.0 = Debug|Win32
+		{1D074E03-57E5-6936-E94F-A55DBEEEDABF}.Release|Win32.ActiveCfg = Release|Win32
+		{1D074E03-57E5-6936-E94F-A55DBEEEDABF}.Release|Win32.Build.0 = Release|Win32
+		{52083E93-A983-4E94-88B2-7A56C0E8AFDE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{52083E93-A983-4E94-88B2-7A56C0E8AFDE}.Debug|Win32.Build.0 = Debug|Win32
+		{52083E93-A983-4E94-88B2-7A56C0E8AFDE}.Release|Win32.ActiveCfg = Release|Win32
+		{52083E93-A983-4E94-88B2-7A56C0E8AFDE}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{3894BD01-1B0F-EC91-6DFB-C16F251A86D6} = {52C37B61-2A40-8D42-0A70-BF7858AF6636}
+		{1D074E03-57E5-6936-E94F-A55DBEEEDABF} = {AEB42855-4A0A-CC6C-C503-A2E4DA6AE61A}
+		{52083E93-A983-4E94-88B2-7A56C0E8AFDE} = {AEB42855-4A0A-CC6C-C503-A2E4DA6AE61A}
+	EndGlobalSection
+EndGlobal
