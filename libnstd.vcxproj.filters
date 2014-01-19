@@ -18,6 +18,7 @@
     <ClInclude Include="Ext\libnstd\include\nstd\Array.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Atomic.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Base.h" />
+    <ClInclude Include="Ext\libnstd\include\nstd\Buffer.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Console.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Debug.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Directory.h" />
@@ -32,5 +33,6 @@
     <ClInclude Include="Ext\libnstd\include\nstd\String.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Thread.h" />
     <ClInclude Include="Ext\libnstd\include\nstd\Time.h" />
+    <ClInclude Include="Ext\libnstd\include\nstd\Variant.h" />
   </ItemGroup>
 </Project>

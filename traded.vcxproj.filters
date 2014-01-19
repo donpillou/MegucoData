@@ -18,9 +18,6 @@
     <ClInclude Include="Src\Protocol.h" />
     <ClInclude Include="Src\ServerHandler.h" />
     <ClInclude Include="Src\SinkClient.h" />
-    <ClInclude Include="Src\Tools\Buffer.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Tools\Math.h">
       <Filter>Tools</Filter>
     </ClInclude>

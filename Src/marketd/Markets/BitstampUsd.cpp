@@ -2,8 +2,8 @@
 #include <nstd/Thread.h>
 #include <nstd/Time.h>
 #include <nstd/Console.h>
+#include <nstd/Variant.h>
 
-#include "Tools/Variant.h"
 #include "Tools/Json.h"
 #include "Tools/HttpRequest.h"
 #include "BitstampUsd.h"

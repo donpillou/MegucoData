@@ -3,8 +3,9 @@
 
 #include <nstd/List.h>
 #include <nstd/HashSet.h>
+#include <nstd/Buffer.h>
+
 #include "Socket.h"
-#include "Buffer.h"
 
 class Server
 {

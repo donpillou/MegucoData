@@ -103,7 +103,6 @@
     <ClInclude Include="Src\marketd\Tools\Json.h" />
     <ClInclude Include="Src\marketd\Tools\Market.h" />
     <ClInclude Include="Src\marketd\Tools\RelayConnection.h" />
-    <ClInclude Include="Src\marketd\Tools\Variant.h" />
     <ClInclude Include="Src\marketd\Tools\Websocket.h" />
     <ClCompile Include="Src\marketd\Main.cpp" />
   </ItemGroup>

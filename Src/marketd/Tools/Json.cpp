@@ -1,6 +1,7 @@
 
+#include <nstd/Buffer.h>
+
 #include "Json.h"
-#include "Tools/Buffer.h"
 
 class Token
 {

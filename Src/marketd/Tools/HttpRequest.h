@@ -4,8 +4,7 @@
 
 #include <nstd/String.h>
 #include <nstd/HashMap.h>
-
-#include "Tools/Buffer.h"
+#include <nstd/Buffer.h>
 
 class HttpRequest
 {

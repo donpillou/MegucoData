@@ -42,9 +42,6 @@
     <ClInclude Include="Src\marketd\Tools\RelayConnection.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="Src\marketd\Tools\Variant.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="Src\marketd\Tools\Websocket.h">
       <Filter>Tools</Filter>
     </ClInclude>

@@ -1,7 +1,7 @@
 
 #pragma once
 
-#include "Variant.h"
+#include <nstd/Variant.h>
 
 class Buffer;
 

@@ -95,7 +95,6 @@
     <ClInclude Include="Src\Protocol.h" />
     <ClInclude Include="Src\ServerHandler.h" />
     <ClInclude Include="Src\SinkClient.h" />
-    <ClInclude Include="Src\Tools\Buffer.h" />
     <ClInclude Include="Src\Tools\Math.h" />
     <ClInclude Include="Src\Tools\Server.h" />
     <ClInclude Include="Src\Tools\Socket.h" />

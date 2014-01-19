@@ -2,7 +2,7 @@
 #pragma once
 
 #include <nstd/String.h>
-#include "Tools/Buffer.h"
+#include <nstd/Buffer.h>
 
 class Websocket
 {
