@@ -1,0 +1,118 @@
+
+markets = "Src/marketd/Markets/*.cpp"; markets = "$(patsubst Src/marketd/Markets/%.cpp,%,$(markets))"
+
+targets = {
+
+  traded = cppApplication + {
+    dependencies = { "libnstd" } + markets
+    buildDir = "Build/$(configuration)/$(target)"
+    includePaths = { "Ext/libnstd/include" }
+    libPaths = { "Build/$(configuration)/libnstd" }
+    libs = { "nstd" }
+    root = "Src"
+    files = {
+      "Src/**.cpp" = cppSource
+      "Src/**.h"
+    }
+    files -= { "Src/marketd/**" }
+    if tool == "vcxproj" {
+      libs += { "ws2_32" }
+      linkFlags += { "/SUBSYSTEM:CONSOLE" }
+    }
+    if platform == "Linux" {
+      libs += { "pthread" }
+    }
+  }
+  
+  "$(markets)" = cppApplication + {
+    folder = "Markets"
+    dependencies = { "libnstd" }
+    buildDir = "Build/$(configuration)/$(target)"
+    includePaths = {
+      "Ext/libnstd/include"
+      "Src",
+      "Src/marketd",
+    }
+    libPaths = {
+      "Build/$(configuration)/libnstd"
+    }
+    libs = { "nstd", "curl" }
+    root = { "Src/marketd/Markets", "Src/marketd", "Src" }
+    files = {
+      "Src/marketd/Markets/$(target).cpp" = cppSource
+      "Src/marketd/Markets/$(target).h"
+      "Src/Tools/Socket.cpp" = cppSource
+      "Src/Tools/Socket.h"
+      "Src/Tools/Buffer.h"
+      "Src/Protocol.h"
+      "Src/marketd/Tools/**.cpp" = cppSource
+      "Src/marketd/Tools/**.h"
+      "Src/marketd/*.cpp" = cppSource
+      "Src/marketd/*.h"
+    }
+    if tool == "vcxproj" {
+      libs += { "ws2_32" }
+      dependencies += { "libcurl" }
+      linkFlags += { "/SUBSYSTEM:CONSOLE" }
+      defines += { "CURL_STATICLIB" }
+      includePaths += {
+        "Ext/curl/include",
+        "Build/$(configuration)/libcurl/include"
+        "Build/$(configuration)/libcurl/include/curl"
+      }
+      libPaths += {
+        "Build/$(configuration)/libcurl"
+      }
+    }
+  }
+
+  libnstd = cppStaticLibrary + {
+    folder = "Libraries"
+    includePaths = { "Ext/libnstd/include" }
+    buildDir = "Build/$(configuration)/$(target)"
+    root = { "Ext/libnstd/src", "Ext/libnstd/include/nstd" }
+    files = {
+      "Ext/libnstd/src/*.cpp" = cppSource,
+      "Ext/libnstd/include/nstd/*.h"
+    }
+    if tool == "vcxproj" {
+      defines += { "_CRT_SECURE_NO_WARNINGS" }
+    }
+  }
+
+  if tool == "vcxproj" {
+    libcurl = cStaticLibrary + {
+      buildDir = "Build/$(configuration)/$(target)"
+      folder = "Libraries"
+      root = { "Ext/curl/lib", "Ext/curl/include" }
+      defines += { "$(if $(Win32),WIN32 _WINDOWS)", "_USRDLL", "BUILDING_LIBCURL", "CURL_STATICLIB", "HTTP_ONLY", "USE_WINDOWS_SSPI", "USE_SCHANNEL" /*"USE_SSLEAY", "USE_OPENSSL"*/ }
+      includePaths = {
+        "Ext/curl/include"
+        "Ext/curl/lib"
+        "$(buildDir)/include"
+        "$(buildDir)/include/curl"
+      }
+      files = {
+        "Ext/curl/include/curl/curlbuild.h.dist" = copyFile + {
+          output = "$(buildDir)/include/curl/curlbuild.h"
+        }
+        "Ext/curl/lib/**.c" = cSource
+        "Ext/curl/lib/**.h"
+      }
+    }
+  }
+}
+
+copyFile = {
+  message = "$(if $(Win32),$(notdir $(file)),$(file)) (copy)"
+  input = file
+  output = "$(buildDir)/$(notdir $(file))"
+  if platform == "Win32" {
+    command = "copy $(subst /,\\,$(file)) $(subst /,\\,$(output))"
+  } else { 
+    command = "cp $(file) $(output)"
+  }
+  folder = ".copy"
+}
+
+
