@@ -38,7 +38,7 @@ bool_t BitstampUsd::connect()
       return false;
     }
     timestamp_t localTime = Time::time();
-    Console::printf("%s\n", (const byte_t*)data);
+    //Console::printf("%s\n", (const byte_t*)data);
     Variant dataVar;
     if(!Json::parse(data, dataVar))
     {
@@ -68,7 +68,7 @@ bool_t BitstampUsd::process(Callback& callback)
       return false;
     }
 
-    Console::printf("%s\n", (const byte_t*)data);
+    //Console::printf("%s\n", (const byte_t*)data);
     Variant dataVar;
     if(!Json::parse(data, dataVar))
     {
@@ -131,7 +131,7 @@ bool_t BitstampUsd::process(Callback& callback)
 bool_t BitstampUsd::handleStreamData(const Buffer& data, Callback& callback)
 {
   timestamp_t localTime = Time::time();
-  Console::printf("%s\n", (const byte_t*)data);
+  //Console::printf("%s\n", (const byte_t*)data);
 
   Variant dataVar;
   if(Json::parse(data, dataVar))
