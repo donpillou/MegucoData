@@ -103,10 +103,15 @@ uint_t SinkClient::main(void_t* param)
 void_t SinkClient::loadTradesFromFile()
 {
   Directory dir;
-  Directory::create(channelName);
-  //if(!dir.open(channelName, "trades-*.dat", false))
-  //if(!dir.open(channelName, "trades-*.*", false))
-  if(!dir.open(channelName, "*", false))
+  if(!Directory::exists(channelName))
+  {
+    if(!Directory::create(channelName))
+    {
+      Console::errorf("error: Could not create directory %s: %s\n", (const tchar_t*)channelName, (const tchar_t*)Error::getErrorString());
+      return;
+    }
+  }
+  if(!dir.open(channelName, "trades-*.dat", false))
   {
     Console::errorf("error: Could not open directory %s: %s\n", (const tchar_t*)channelName, (const tchar_t*)Error::getErrorString());
     return;
