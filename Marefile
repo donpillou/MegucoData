@@ -20,7 +20,7 @@ targets = {
       linkFlags += { "/SUBSYSTEM:CONSOLE" }
     }
     if platform == "Linux" {
-      libs += { "pthread" }
+      libs += { "pthread", "rt" }
     }
   }
   
