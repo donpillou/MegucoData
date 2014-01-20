@@ -1,6 +1,11 @@
 
 #ifndef _WIN32
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <cstring>
 #endif
 
 #include <nstd/Console.h>
@@ -43,13 +48,30 @@ int_t main(int_t argc, char_t* argv[])
   if(background)
   {
     Console::printf("Starting as daemon...\n");
+
+    int fd = open("traded.log", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    if(fd == -1)
+    {
+      Console::errorf("error: Could not open file %s: %s\n", "traded.log", strerror(errno));
+      return -1;
+    }
+    if(dup2(fd, STDOUT_FILENO) == -1)
+    {
+      Console::errorf("error: Could not reopen stdout: %s\n", strerror(errno));
+      return 0;
+    }
+    if(dup2(fd, STDERR_FILENO) == -1)
+    {
+      Console::errorf("error: Could not reopen stdout: %s\n", strerror(errno));
+      return 0;
+    }
+    close(fd);
+
     pid_t childPid = fork();
     if(childPid == -1)
       return -1;
     if(childPid != 0)
       return 0;
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
   }
 #endif
 
