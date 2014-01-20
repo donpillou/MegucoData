@@ -14,9 +14,6 @@
     <ClInclude Include="Src\Tools\Socket.h">
       <Filter>Tools</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Tools\Buffer.h">
-      <Filter>Tools</Filter>
-    </ClInclude>
     <ClInclude Include="Src\Protocol.h" />
     <ClCompile Include="Src\marketd\Tools\HttpRequest.cpp">
       <Filter>Tools</Filter>

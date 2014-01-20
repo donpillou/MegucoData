@@ -4,39 +4,31 @@
 #include <nstd/String.h>
 #include <nstd/HashSet.h>
 
+#include "Protocol.h"
+
 class ClientHandler;
 
 class Channel
 {
 public:
-  class Trade
-  {
-  public:
-    uint64_t id;
-    uint64_t time;
-    double price;
-    double amount;
-    uint_t flags;
-  };
-
   class Listener
   {
   public:
-    virtual void_t addedTrade(Channel& channel, const Trade& trade) = 0;
+    virtual void_t addedTrade(Channel& channel, const Protocol::Trade& trade) = 0;
   };
 
   Channel(uint64_t id) : id(id), sinkClient(0), sourceClient(0), lastTradeId(0), lastTradeTime(0) {}
 
   uint64_t getId() const {return id;}
 
-  void_t addTrade(const Trade& trade)
+  void_t addTrade(const Protocol::Trade& trade)
   {
     if(trade.id <= lastTradeId)
       return;
     if(trade.time < lastTradeTime)
     { // this can't be true, since the trade id should increase with each trade.
       // let's hope the last trade time was not horribly wrong and shift the current trade time to come after the last one.
-      Trade shiftedTrade = trade;
+      Protocol::Trade shiftedTrade = trade;
       shiftedTrade.time = lastTradeTime;
       addTrade(shiftedTrade);
       return;

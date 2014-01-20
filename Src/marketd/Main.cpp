@@ -10,6 +10,8 @@
 
 #include <nstd/Console.h>
 #include <nstd/Thread.h>
+#include <nstd/Directory.h>
+#include <nstd/Error.h>
 
 #include "Tools/RelayConnection.h"
 
@@ -21,17 +23,38 @@ int_t main(int_t argc, char_t* argv[])
 {
   static const uint16_t port = 40123;
   bool background = true;
+  String dataDir("Data");
 
   // parse parameters
   for(int i = 1; i < argc; ++i)
     if(String::compare(argv[i], "-f") == 0)
       background = false;
+    else if(String::compare(argv[i], "-c") == 0&& i + 1 < argc)
+    {
+      ++i;
+      dataDir = String(argv[i], String::length(argv[i]));
+    }
     else
     {
-      Console::errorf("Usage: %s [-b]\n\
-  -f            run in foreground (not as daemon)\n", argv[0]);
+      Console::errorf("Usage: %s [-b] [-c <dir>]\n\
+  -f            run in foreground (not as daemon)\n\
+  -c <dir>      set data directory (default is .)\n", argv[0]);
       return -1;
     }
+
+#ifndef _WIN32
+    // change working directory
+  if(!Directory::exists(dataDir) && !Directory::create(dataDir))
+  {
+    Console::errorf("error: Could not create data directory: %s\n", (const tchar_t*)Error::getErrorString());
+    return -1;
+  }
+  if(!dataDir.isEmpty() && !Directory::change(dataDir))
+  {
+    Console::errorf("error: Could not enter data directory: %s\n", (const tchar_t*)Error::getErrorString());
+    return -1;
+  }
+#endif
 
 #ifndef _WIN32
   // daemonize process

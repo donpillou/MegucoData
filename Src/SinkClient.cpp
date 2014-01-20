@@ -144,9 +144,9 @@ void_t SinkClient::loadTradesFromFile(const String& fileName)
   ssize_t bytes;
   while((bytes = file.read(buffer, sizeof(buffer))) > 0)
   {
-    for(Protocol::Trade* trade = (Protocol::Trade*)buffer, * end = trade + bytes / sizeof(buffer); trade < end; ++trade)
+    for(Protocol::Trade* trade = (Protocol::Trade*)buffer, * end = trade + bytes / sizeof(Protocol::Trade); trade < end; ++trade)
       addTrade(*trade);
-    if(bytes % sizeof(buffer))
+    if(bytes % sizeof(Protocol::Trade))
     {
       Console::errorf("error: Data from file %s is incomplete: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
       return;
@@ -248,24 +248,9 @@ bool_t SinkClient::handleTradeMessage(Protocol::TradeMessage& tradeMessage)
 {
   if(tradeMessage.channelId != channelId)
     return true;
-  if(tradeMessage.trade.id <= lastTradeId)
-    return true;
 
-  uint64_t time = tradeMessage.trade.time;
-  Trade& trade = trades.append(tradeMessage.trade.id, Trade());
-  trade.time = time;
-  trade.price = tradeMessage.trade.price;
-  trade.amount = tradeMessage.trade.amount;
-  trade.flags = tradeMessage.trade.flags;
-
-  uint64_t keyTime = time / (60ULL * 60ULL * 1000ULL);
-  if(keyTrades.find(keyTime) == keyTrades.end())
-    keyTrades.append(keyTime, tradeMessage.trade.id);
-
-  while(time - trades.front().time > 7ULL * 24ULL * 60ULL * 60ULL * 1000ULL)
-    trades.removeFront();
-  while(keyTime - keyTrades.begin().key() > 7ULL * 24ULL)
-    keyTrades.removeFront();
+  const Protocol::Trade& trade = tradeMessage.trade;
+  addTrade(tradeMessage.trade);
 
   // save trade data in file
   String currentfileDate = Time::toString(trade.time, "%Y-%m-%d");
@@ -274,7 +259,7 @@ bool_t SinkClient::handleTradeMessage(Protocol::TradeMessage& tradeMessage)
     file.close();
     fileDate = currentfileDate;
     fileName = channelName + "/trades-" + fileDate + ".dat";
-    if(!file.open(fileName))
+    if(!file.open(fileName, File::writeFlag))
       Console::errorf("error: Could not open file %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
   }
   if(file.isOpen())

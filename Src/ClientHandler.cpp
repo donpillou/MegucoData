@@ -5,6 +5,9 @@
 
 ClientHandler::~ClientHandler()
 {
+  for(HashMap<uint64_t, Subscription>::Iterator i = subscriptions.begin(), end = subscriptions.end(); i != end; ++i)
+    i->channel->removeListener(*this);
+
   if(channel)
     switch(mode)
     {
@@ -150,6 +153,7 @@ void_t ClientHandler::handleMessage(Protocol::MessageType messageType, byte_t* d
         return;
       Subscription& subscription = subscriptions.append(channelId, Subscription());
       subscription.channel = channel;
+      channel->addListener(*this);
 
       byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::SubscribeResponse)];
       Protocol::Header* header = (Protocol::Header*)message;
@@ -226,7 +230,9 @@ void_t ClientHandler::handleMessage(Protocol::MessageType messageType, byte_t* d
   case Protocol::tradeMessage:
     if(size >= sizeof(Protocol::TradeMessage))
     {
-
+      Protocol::TradeMessage* tradeMessage = (Protocol::TradeMessage*)data;
+      if(channel && channel->getId() == tradeMessage->channelId)
+        channel->addTrade(tradeMessage->trade);
     }
     break;
   default:
@@ -255,7 +261,7 @@ void_t ClientHandler::write()
   sinkClient->client.send(message, sizeof(message));
 }
 
-void_t ClientHandler::addedTrade(Channel& channel, const Channel::Trade& trade)
+void_t ClientHandler::addedTrade(Channel& channel, const Protocol::Trade& trade)
 {
   byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeMessage)];
   Protocol::Header* header = (Protocol::Header*)message;

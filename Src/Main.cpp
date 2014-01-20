@@ -20,26 +20,34 @@ int_t main(int_t argc, char_t* argv[])
 {
   static const uint16_t port = 40123;
   bool background = true;
-  const char* dataDir = 0;
+  String dataDir("Data");
 
   // parse parameters
   for(int i = 1; i < argc; ++i)
     if(String::compare(argv[i], "-f") == 0)
       background = false;
     else if(String::compare(argv[i], "-c") == 0&& i + 1 < argc)
-      dataDir = argv[++i];
+    {
+      ++i;
+      dataDir = String(argv[i], String::length(argv[i]));
+    }
     else
     {
       Console::errorf("Usage: %s [-b] [-c <dir>]\n\
   -f            run in foreground (not as daemon)\n\
-  -c <dir>      set database directory (default is .)\n", argv[0]);
+  -c <dir>      set data directory (default is .)\n", argv[0]);
       return -1;
     }
 
   // change working directory
-  if(dataDir && *dataDir && !Directory::change(String(dataDir, String::length(dataDir))))
+  if(!Directory::exists(dataDir) && !Directory::create(dataDir))
   {
-    Console::errorf("error: Could not enter database directory: %s\n", (const tchar_t*)Error::getErrorString());
+    Console::errorf("error: Could not create data directory: %s\n", (const tchar_t*)Error::getErrorString());
+    return -1;
+  }
+  if(!dataDir.isEmpty() && !Directory::change(dataDir))
+  {
+    Console::errorf("error: Could not enter data directory: %s\n", (const tchar_t*)Error::getErrorString());
     return -1;
   }
 

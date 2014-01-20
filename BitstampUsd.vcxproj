@@ -93,7 +93,6 @@
     <ClInclude Include="Src\marketd\Markets\BitstampUsd.h" />
     <ClCompile Include="Src\Tools\Socket.cpp" />
     <ClInclude Include="Src\Tools\Socket.h" />
-    <ClInclude Include="Src\Tools\Buffer.h" />
     <ClInclude Include="Src\Protocol.h" />
     <ClCompile Include="Src\marketd\Tools\HttpRequest.cpp" />
     <ClCompile Include="Src\marketd\Tools\Json.cpp" />

@@ -85,7 +85,7 @@ bool_t BitstampUsd::process(Callback& callback)
         const HashMap<String, Variant>& tradeMap = i->toMap();
         trade.amount =  tradeMap.find("amount")->toDouble();
         trade.price = tradeMap.find("price")->toDouble();
-        trade.time = tradeMap.find("date")->toUInt64();
+        trade.time = tradeMap.find("date")->toUInt64() * 1000ULL;
         trade.flags = 0;
         trade.id = tradeMap.find("tid")->toUInt64();
         if(!callback.receivedTrade(trade))
