@@ -288,6 +288,7 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
       else if (ws.opcode == wsheader_type::CLOSE) {
         close();
         buffer.clear();
+        error = "Connection was closed.";
         return false;
       }
       else {
@@ -465,6 +466,11 @@ bool_t Websocket::receive(byte_t* data, size_t size, timestamp_t timeout, size_t
     if(status != CURLE_OK)
     {
       error.printf("%s.", curl_easy_strerror(status));
+      return false;
+    }
+    if(received == 0)
+    {
+      error = "Connection was closed.";
       return false;
     }
     return true;

@@ -212,8 +212,9 @@ bool_t Socket::send(const byte_t* data, size_t size, size_t& sent)
 bool_t Socket::recv(byte_t* data, size_t maxSize, size_t& received)
 {
   int r = ::recv((SOCKET)s, (char*)data, maxSize, 0);
-  if(r == SOCKET_ERROR)
+  switch(r)
   {
+  case SOCKET_ERROR:
     if(ERRNO == EWOULDBLOCK 
 #ifndef _WIN32
       || ERRNO == EAGAIN
@@ -224,6 +225,9 @@ bool_t Socket::recv(byte_t* data, size_t maxSize, size_t& received)
       return true;
     }
     return false;
+  case 0:
+    received = 0;
+    return false;
   }
   received = r;
   return true;
@@ -232,24 +236,24 @@ bool_t Socket::recv(byte_t* data, size_t maxSize, size_t& received)
 bool_t Socket::send(const byte_t* data, size_t size)
 {
   size_t sent, totalSent = 0;
-  do
+  while(totalSent < size)
   {
     if(!send(data, size, sent))
       return false;
     totalSent += sent;
-  } while(totalSent < size);
+  }
   return true;
 }
 
 bool_t Socket::recv(byte_t* data, size_t size)
 {
   size_t received, totalReceived = 0;
-  do
+  while(totalReceived < size)
   {
     if(!recv(data, size, received))
       return false;
     totalReceived += received;
-  } while(totalReceived < size);
+  }
   return true;
 }
 
