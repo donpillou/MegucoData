@@ -19,6 +19,7 @@
 #define EINPROGRESS WSAEINPROGRESS
 #define CLOSE closesocket
 typedef int socklen_t;
+#define MSG_NOSIGNAL 0
 #else
 typedef int SOCKET;
 #define INVALID_SOCKET (-1)
@@ -191,7 +192,7 @@ int_t Socket::getAndResetErrorStatus()
 
 bool_t Socket::send(const byte_t* data, size_t size, size_t& sent)
 {
-  int r = ::send((SOCKET)s, (const char*)data, size, 0);
+  int r = ::send((SOCKET)s, (const char*)data, size, MSG_NOSIGNAL);
   if(r == SOCKET_ERROR)
   {
     if(ERRNO == EWOULDBLOCK 
