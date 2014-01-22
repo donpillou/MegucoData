@@ -235,6 +235,24 @@ void_t ClientHandler::handleMessage(Protocol::MessageType messageType, byte_t* d
         channel->addTrade(tradeMessage->trade);
     }
     break;
+  case Protocol::channelRequest:
+    {
+      const HashMap<String, Channel*>& channels = serverHandler.getChannels();
+      Protocol::Header header;
+      Protocol::Channel channelProt;
+      header.size = sizeof(header) + channels.size() * sizeof(Protocol::Channel);
+      header.destination = header.source = 0;
+      header.messageType = Protocol::channelResponse;
+      client.send((byte_t*)&header, sizeof(header));
+      for(HashMap<String, Channel*>::Iterator i = channels.begin(), end = channels.end(); i != end; ++i)
+      {
+        const String& channelName = i.key();
+        const Channel* channel = *i;
+        Memory::copy(&channelProt.channel, (const tchar_t*)channelName, channelName.length() + 1);
+        client.send((byte_t*)&channelProt, sizeof(channelProt));
+      }
+    }
+    break;
   default:
     break;
   }

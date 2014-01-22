@@ -16,6 +16,7 @@ public:
   Channel* createChannel(const String& name);
   Channel* findChannel(const String& name);
   ClientHandler* findClient(uint64_t id);
+  const HashMap<String, Channel*>& getChannels() const {return channels;}
 
   ServerHandler(uint16_t port) : port(port), nextClientId(1), nextChannelId(1) {}
   ~ServerHandler();

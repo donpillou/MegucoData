@@ -19,7 +19,20 @@ public:
     registerSinkResponse,
     registeredSinkMessage,
     tradeMessage,
+    channelRequest,
+    channelResponse,
   };
+
+  //enum ChannelType
+  //{
+  //  tradeType,
+  //  orderBookType,
+  //};
+  //
+  //enum ChannelFlag
+  //{
+  //  onlineFlag = 0x01,
+  //};
 
 #pragma pack(push, 1)
   struct Header
@@ -82,6 +95,12 @@ public:
   struct TradeResponse
   {
     uint64_t channelId;
+  };
+  struct Channel
+  {
+    char_t channel[33];
+    //uint8_t type;
+    //uint32_t flags;
   };
 
 #pragma pack(pop)
