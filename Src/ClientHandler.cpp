@@ -247,7 +247,6 @@ void_t ClientHandler::handleMessage(Protocol::MessageType messageType, byte_t* d
       for(HashMap<String, Channel*>::Iterator i = channels.begin(), end = channels.end(); i != end; ++i)
       {
         const String& channelName = i.key();
-        const Channel* channel = *i;
         Memory::copy(&channelProt.channel, (const tchar_t*)channelName, channelName.length() + 1);
         client.send((byte_t*)&channelProt, sizeof(channelProt));
       }
