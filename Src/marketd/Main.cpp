@@ -145,7 +145,7 @@ int_t main(int_t argc, char_t* argv[])
     if(!relayConnection.isOpen())
       Console::printf("Lost connection to relay server: %s\n", (const char_t*)relayConnection.getErrorString());
     if(!marketConnection.isOpen())
-      Console::printf("Lost connection to %s: %s\n", (const char_t*)channelName, (const char_t*)relayConnection.getErrorString());
+      Console::printf("Lost connection to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
   }
 
   return 0;
