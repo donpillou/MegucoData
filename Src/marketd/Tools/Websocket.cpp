@@ -181,6 +181,7 @@ void_t Websocket::close()
     curl = 0;
   }
   s = 0;
+  recvBuffer.clear();
 }
 
 bool_t Websocket::isOpen() const
