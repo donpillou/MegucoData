@@ -42,12 +42,12 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
     if(header->destination && mode == sinkMode)
     {
       ClientHandler* client = serverHandler.findClient(header->destination);
-      client->handleMessage((Protocol::MessageType)header->messageType, data + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
+      client->handleMessage((Protocol::MessageType)header->messageType, pos + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
       pos += header->size;
       size -= header->size;
       continue;
     }
-    handleMessage((Protocol::MessageType)header->messageType, data + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
+    handleMessage((Protocol::MessageType)header->messageType, pos + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
     pos += header->size;
     size -= header->size;
   }
@@ -166,7 +166,7 @@ void_t ClientHandler::handleMessage(Protocol::MessageType messageType, byte_t* d
       client.send(message, sizeof(message));
 
       ClientHandler* sinkClient = channel->getSinkClient();
-      if(request->maxAge == 0 || !sinkClient)
+      if(request->maxAge != 0 && sinkClient)
       {
         byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeRequest)];
         Protocol::Header* header = (Protocol::Header*)message;
