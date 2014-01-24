@@ -215,7 +215,7 @@ bool_t SinkClient::handleMessage(Socket& socket, Protocol::MessageType messageTy
         Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)(header + 1);
         tradeResponse->channelId = channelId;
         Protocol::Trade* tradeMsg = (Protocol::Trade*)(tradeResponse + 1);
-        while(itTrade != itTradeEnd)
+        for(; itTrade != itTradeEnd; ++itTrade)
         {
           Trade& trade = *itTrade;
           tradeMsg->id = itTrade.key();
