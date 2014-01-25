@@ -74,7 +74,7 @@ bool_t HttpRequest::get(const String& url, Buffer& data)
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
   if(code != 200)
   {
-    error.printf("Server responded with code %s.", code);
+    error.printf("Server responded with code %u.", (uint_t)code);
     return false;
   }
 
@@ -139,7 +139,7 @@ bool HttpRequest::post(const String& url, const HashMap<String, String>& formDat
   curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
   if(code != 200)
   {
-    error.printf("Server responded with code %s.", code);
+    error.printf("Server responded with code %u.", (uint_t)code);
     curl_formfree(formpost);
     return false;
   }
