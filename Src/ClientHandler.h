@@ -20,7 +20,7 @@ public:
 private:
   virtual size_t handle(byte_t* data, size_t size);
 
-  void_t handleMessage(Protocol::MessageType messageType, byte_t* data, size_t size);
+  void_t handleMessage(const Protocol::Header& header, byte_t* data, size_t size);
 
   virtual void_t write();
 
