@@ -131,7 +131,7 @@ int_t main(int_t argc, char_t* argv[])
       Console::printf("Connecting to %s...\n", (const char_t*)channelName);
       if(!marketConnection.connect())
       {
-        Console::printf("Could not connect to %s: %s\n", (const char_t*)channelName, (const char_t*)relayConnection.getErrorString());
+        Console::printf("Could not connect to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
         continue;
       }
       else
