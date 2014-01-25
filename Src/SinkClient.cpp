@@ -203,6 +203,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
           header->destination = messageHeader.source;
           header->source = 0;
           header->messageType = Protocol::errorResponse;
+          errorResponse->messageType = messageHeader.messageType;
           errorResponse->channelId = channelId;
           String errorMessage("Unknown trade id.");
           Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, errorMessage.length() + 1);

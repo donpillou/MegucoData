@@ -11,6 +11,8 @@ public:
     errorResponse,
     subscribeRequest,
     subscribeResponse,
+    unsubscribeRequest,
+    unsubscribeResponse,
     tradeRequest,
     tradeResponse,
     registerSourceRequest,
@@ -56,6 +58,15 @@ public:
     uint64_t maxAge;
   };
   struct SubscribeResponse
+  {
+    char_t channel[33];
+    uint64_t channelId;
+  };
+  struct UnsubscribeRequest
+  {
+    char_t channel[33];
+  };
+  struct UnsubscribeResponse
   {
     char_t channel[33];
     uint64_t channelId;
