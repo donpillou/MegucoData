@@ -58,7 +58,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
   }
 
   // receive registered sink message
-  {
+  { // waiting for this message ensures that the sink client is ready to save the data we provide
     Protocol::Header header;
     if(!socket.recv((byte_t*)&header, sizeof(header)))
     {
