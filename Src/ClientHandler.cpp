@@ -188,15 +188,22 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
     break;
   case Protocol::tradeRequest:
     break;
-  case Protocol::tradeErrorResponse: // stop requesting old trades and start listening to new trades
-    if(size >= sizeof(Protocol::TradeResponse))
+  case Protocol::errorResponse:
+    if(size >= sizeof(Protocol::ErrorResponse))
     {
-      Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)data;
-      HashMap<uint64_t, Subscription>::Iterator it = subscriptions.find(tradeResponse->channelId);
-      if(it == subscriptions.end())
-        return;
-      Subscription& subscription = *it;
-      subscription.channel->addListener(*this);
+      Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)data;
+      switch(errorResponse->messageType)
+      {
+      case Protocol::tradeRequest: // stop requesting trade history and start listening to new trades
+        {
+          HashMap<uint64_t, Subscription>::Iterator it = subscriptions.find(errorResponse->channelId);
+          if(it == subscriptions.end())
+            return;
+          Subscription& subscription = *it;
+          subscription.channel->addListener(*this);
+        }
+        break;
+      }
     }
     break;
   case Protocol::tradeResponse:

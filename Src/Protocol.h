@@ -8,11 +8,11 @@ class Protocol
 public:
   enum MessageType
   {
+    errorResponse,
     subscribeRequest,
     subscribeResponse,
     tradeRequest,
     tradeResponse,
-    tradeErrorResponse,
     registerSourceRequest,
     registerSourceResponse,
     registerSinkRequest,
@@ -41,6 +41,13 @@ public:
     uint64_t source; // client id
     uint64_t destination; // client id
     uint16_t messageType; // MessageType
+  };
+
+  struct ErrorResponse
+  {
+    uint16_t messageType;
+    uint64_t channelId;
+    char_t errorMessage[128];
   };
 
   struct SubscribeRequest

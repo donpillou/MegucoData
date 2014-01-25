@@ -92,7 +92,7 @@ uint_t SinkClient::main(void_t* param)
         break;
       if(!socket.recv(messageData, messageDataSize))
         break;
-      if(!sinkClient->handleMessage(socket, (Protocol::MessageType)header.messageType, messageData, messageDataSize))
+      if(!sinkClient->handleMessage(socket, header, messageData, messageDataSize))
         break;
     }
   }
@@ -156,9 +156,9 @@ void_t SinkClient::loadTradesFromFile(const String& fileName)
     Console::errorf("error: Could not read data from %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
 }
 
-bool_t SinkClient::handleMessage(Socket& socket, Protocol::MessageType messageType, byte_t* data, size_t size)
+bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& messageHeader, byte_t* data, size_t size)
 {
-  switch(messageType)
+  switch(messageHeader.messageType)
   {
   case Protocol::tradeRequest:
     if(size >= sizeof(Protocol::TradeRequest))
@@ -197,12 +197,15 @@ bool_t SinkClient::handleMessage(Socket& socket, Protocol::MessageType messageTy
         HashMap<uint64_t, Trade>::Iterator itTradeEnd = trades.end();
         if(itTrade == itTradeEnd)
         {
-          byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeResponse)];
+          byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::ErrorResponse)];
           Protocol::Header* header = (Protocol::Header*)message;
-          Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)(header + 1);
-          header->destination = header->source = 0;
-          header->messageType = Protocol::tradeErrorResponse;
-          tradeResponse->channelId = channelId;
+          Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)(header + 1);
+          header->destination = messageHeader.source;
+          header->source = 0;
+          header->messageType = Protocol::errorResponse;
+          errorResponse->channelId = channelId;
+          String errorMessage("Unknown trade id.");
+          Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, errorMessage.length() + 1);
           if(!socket.send(message, sizeof(message)))
             break;
         }
@@ -210,7 +213,8 @@ bool_t SinkClient::handleMessage(Socket& socket, Protocol::MessageType messageTy
 
         byte_t message[4000];
         Protocol::Header* header = (Protocol::Header*)message;
-        header->destination = header->source = 0;
+        header->destination = messageHeader.source;
+        header->source = 0;
         header->messageType = Protocol::tradeResponse;
         Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)(header + 1);
         tradeResponse->channelId = channelId;

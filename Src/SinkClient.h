@@ -40,7 +40,7 @@ private:
 
   static uint_t main(void_t* param);
 
-  bool_t handleMessage(Socket& socket, Protocol::MessageType messageType, byte_t* data, size_t size);
+  bool_t handleMessage(Socket& socket, const Protocol::Header& messageHeader, byte_t* data, size_t size);
   bool_t handleTradeMessage(Protocol::TradeMessage& tradeMessage);
 
   void_t loadTradesFromFile();
