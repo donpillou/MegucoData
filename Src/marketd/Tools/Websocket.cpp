@@ -293,7 +293,7 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
         return false;
       }
       else {
-        error = "Got unexpected message.";
+        error.printf("Got unknown message 0x%02x.", (int_t)ws.opcode);
         close();
         return false;
       }
