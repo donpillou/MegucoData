@@ -1,4 +1,6 @@
 
+#include <nstd/Time.h>>
+
 #include "ClientHandler.h"
 #include "ServerHandler.h"
 #include "Protocol.h"
@@ -105,8 +107,6 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       }
     }
     break;
-  case Protocol::registerSourceResponse:
-    break;
   case Protocol::registerSinkRequest:
     if(clientAddr == Socket::loopbackAddr && size >= sizeof(Protocol::RegisterSinkRequest) && channel == 0)
     {
@@ -146,8 +146,6 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         channel->getSourceClient()->client.send((byte_t*)&header, sizeof(header));
       }
     }
-    break;
-  case Protocol::registerSinkResponse:
     break;
   case Protocol::subscribeRequest:
     if(size >= sizeof(Protocol::SubscribeRequest))
@@ -228,8 +226,6 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       client.send(message, sizeof(message));
     }
     break;
-  case Protocol::tradeRequest:
-    break;
   case Protocol::errorResponse:
     if(size >= sizeof(Protocol::ErrorResponse))
     {
@@ -307,6 +303,27 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       }
     }
     break;
+  case Protocol::timeRequest:
+    {
+      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TimeResponse)];
+      Protocol::Header* header = (Protocol::Header*)message;
+      Protocol::TimeResponse* timeRespnse = (Protocol::TimeResponse*)(header + 1);
+      header->size = sizeof(message);
+      header->destination = messageHeader.source;
+      header->source = 0;
+      header->messageType = Protocol::tradeMessage;
+      timeRespnse->time = Time::time();
+      client.send((byte_t*)message, sizeof(message));
+    }
+    break;
+  case Protocol::timeMessage:
+    if(size >= sizeof(Protocol::TimeMessage))
+    {
+      Protocol::TimeMessage* timeMessage = (Protocol::TimeMessage*)data;
+      if(channel && channel->getId() == timeMessage->channelId)
+        channel->setServerTime(timeMessage->time);
+    }
+    break;
   default:
     break;
   }
@@ -343,7 +360,7 @@ void_t ClientHandler::addedTrade(Channel& channel, const Protocol::Trade& trade)
   header->messageType = Protocol::tradeMessage;
   treadeMessage->channelId = channel.getId();
   treadeMessage->trade.id = trade.id;
-  treadeMessage->trade.time = trade.time;
+  treadeMessage->trade.time = channel.toLocalTime(trade.time);
   treadeMessage->trade.price = trade.price;
   treadeMessage->trade.amount = trade.amount;
   treadeMessage->trade.flags = trade.flags;

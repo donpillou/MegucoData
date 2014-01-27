@@ -100,11 +100,15 @@ int_t main(int_t argc, char_t* argv[])
   public:
     virtual bool_t receivedTrade(const Market::Trade& trade)
     {
-      if(!relayConnection->send(trade))
-      {
-        // save trade in buffer, send it to relay when the connection is back
+      if(!relayConnection->sendTrade(trade))
         return false;
-      }
+      return true;
+    }
+
+    virtual bool_t receivedTime(uint64_t time)
+    {
+      if(!relayConnection->sendServerTime(time))
+        return false;
       return true;
     }
 
@@ -146,6 +150,7 @@ int_t main(int_t argc, char_t* argv[])
       Console::printf("Lost connection to relay server: %s\n", (const char_t*)relayConnection.getErrorString());
     if(!marketConnection.isOpen())
       Console::printf("Lost connection to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
+    marketConnection.close(); // reconnect to reload the trade history
   }
 
   return 0;

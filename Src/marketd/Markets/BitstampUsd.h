@@ -19,9 +19,9 @@ public:
 private:
   Websocket websocket;
   String error;
-  timestamp_t localTimeToServerTime;
+  timestamp_t localToServerTime;
   timestamp_t lastPingTime;
 
-  timestamp_t toServerTime(timestamp_t localTime) const {return localTime + localTimeToServerTime;}
+  timestamp_t toServerTime(timestamp_t localTime) const {return localTime + localToServerTime;}
   bool_t handleStreamData(const Buffer& data, Callback& callback);
 };

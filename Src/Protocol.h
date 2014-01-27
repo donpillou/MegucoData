@@ -23,6 +23,9 @@ public:
     tradeMessage,
     channelRequest,
     channelResponse,
+    timeRequest,
+    timeResponse,
+    timeMessage,
   };
 
   //enum ChannelType
@@ -110,6 +113,11 @@ public:
     uint64_t channelId;
     Trade trade;
   };
+  struct TimeMessage
+  {
+    uint64_t channelId;
+    uint64_t time;
+  };
   struct TradeResponse
   {
     uint64_t channelId;
@@ -119,6 +127,11 @@ public:
     char_t channel[33];
     //uint8_t type;
     //uint32_t flags;
+  };
+
+  struct TimeResponse
+  {
+    uint64_t time;
   };
 
 #pragma pack(pop)

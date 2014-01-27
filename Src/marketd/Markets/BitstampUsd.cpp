@@ -29,7 +29,7 @@ bool_t BitstampUsd::connect()
 
   HttpRequest httpRequest;
   Buffer data;
-  for(int i = 0; i < 3; ++i)
+  for(int i = 0;; ++i)
   {
     if(!httpRequest.get("https://www.bitstamp.net/api/ticker/", data))
     {
@@ -48,8 +48,10 @@ bool_t BitstampUsd::connect()
     }
     const HashMap<String, Variant>& dataMap = dataVar.toMap();
     timestamp_t serverTime = dataMap.find("timestamp")->toInt64() * 1000LL;  // + up to 8 seconds
-    if(i == 0 || serverTime - localTime < localTimeToServerTime)
-      localTimeToServerTime = serverTime - localTime;
+    if(i == 0 || serverTime - localTime < localToServerTime)
+      localToServerTime = serverTime - localTime;
+    if(i == 2)
+      break;
     Thread::sleep(2000);
   }
 
@@ -58,6 +60,9 @@ bool_t BitstampUsd::connect()
 
 bool_t BitstampUsd::process(Callback& callback)
 {
+  if(!callback.receivedTime(toServerTime(Time::time())))
+    return false;
+
   {
     HttpRequest httpRequest;
     Buffer data;

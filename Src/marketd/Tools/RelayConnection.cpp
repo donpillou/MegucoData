@@ -76,7 +76,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
   return true;
 }
 
-bool_t RelayConnection::send(const Market::Trade& trade)
+bool_t RelayConnection::sendTrade(const Market::Trade& trade)
 {
   byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeMessage)];
   Protocol::Header* header = (Protocol::Header*)message;
@@ -90,6 +90,24 @@ bool_t RelayConnection::send(const Market::Trade& trade)
   tradeMessage->trade.price = trade.price;
   tradeMessage->trade.amount = trade.amount;
   tradeMessage->trade.flags = trade.flags;
+  if(!socket.send(message, sizeof(message)))
+  {
+    error = Socket::getLastErrorString();
+    socket.close();
+    return false;
+  }
+  return true;
+}
+
+bool_t RelayConnection::sendServerTime(uint64_t time)
+{
+  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TimeMessage)];
+  Protocol::Header* header = (Protocol::Header*)message;
+  Protocol::TimeMessage* timeMessage = (Protocol::TimeMessage*)(header + 1);
+  header->size = sizeof(message);
+  header->destination = header->source = 0;
+  header->messageType = Protocol::tradeMessage;
+  timeMessage->time = time;
   if(!socket.send(message, sizeof(message)))
   {
     error = Socket::getLastErrorString();

@@ -12,6 +12,7 @@ public:
   {
   public:
     virtual bool_t receivedTrade(const Trade& trade) = 0;
+    virtual bool_t receivedTime(uint64_t time) = 0;
   };
 
   class Trade

@@ -16,7 +16,8 @@ public:
   bool_t isOpen() const {return socket.isOpen();}
   const String& getErrorString() const {return error;}
   uint64_t getChannelId() const {return channelId;}
-  bool_t send(const Market::Trade& trade);
+  bool_t sendTrade(const Market::Trade& trade);
+  bool_t sendServerTime(uint64_t time);
 
 private:
   Socket socket;
