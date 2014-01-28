@@ -79,7 +79,9 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         channel = serverHandler.createChannel(channelName);
         if(!channel)
         {
-          sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, "Unknown channel %s", (const char_t*)channelName);
+          String errorMessage;
+          errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
+          sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
           return;
         }
       }
@@ -119,7 +121,9 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         channel = serverHandler.createChannel(channelName);
         if(!channel)
         {
-          sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, "Unknown channel %s", (const char_t*)channelName);
+          String errorMessage;
+          errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
+          sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
           return;
         }
       }
@@ -156,7 +160,9 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       Channel* channel = serverHandler.findChannel(channelName);
       if(!channel)
       {
-        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, "Unknown channel %s", (const char_t*)channelName);
+        String errorMessage;
+        errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
+        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
         return;
       }
       uint64_t channelId = channel->getId();
@@ -202,14 +208,18 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       Channel* channel = serverHandler.findChannel(channelName);
       if(!channel)
       {
-        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, "Unknown channel %s", (const char_t*)channelName);
+        String errorMessage;
+        errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
+        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
         return;
       }
       uint64_t channelId = channel->getId();
       HashMap<uint64_t, Subscription>::Iterator it = subscriptions.find(channelId);
       if(it == subscriptions.end())
       {
-        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, "Not subscribed to %s", (const char_t*)channelName);
+        String errorMessage;
+        errorMessage.printf("Not subscribed to %s", (const char_t*)channelName);
+        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
         return;
       }
       subscriptions.remove(it);
@@ -365,13 +375,6 @@ void_t ClientHandler::addedTrade(Channel& channel, const Protocol::Trade& trade)
   treadeMessage->trade.amount = trade.amount;
   treadeMessage->trade.flags = trade.flags;
   client.send(message, sizeof(message));
-}
-
-void_t ClientHandler::sendErrorResponse(Protocol::MessageType messageType, uint64_t destination, uint64_t channelId, const char_t* format, ...)
-{
-  String errorMessage;
-  errorMessage.vprintf(format);
-  sendErrorResponse(messageType, destination, channelId, errorMessage);
 }
 
 void_t ClientHandler::sendErrorResponse(Protocol::MessageType messageType, uint64_t destination, uint64_t channelId, const String& errorMessage)

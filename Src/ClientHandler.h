@@ -23,7 +23,6 @@ private:
   void_t handleMessage(const Protocol::Header& header, byte_t* data, size_t size);
 
   void_t sendErrorResponse(Protocol::MessageType messageType, uint64_t destination, uint64_t channelId, const String& errorMessage);
-  void_t sendErrorResponse(Protocol::MessageType messageType, uint64_t destination, uint64_t channelId, const char_t* format, ...);
 
   virtual void_t write();
 
