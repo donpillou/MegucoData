@@ -232,11 +232,10 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
           if((size_t)((byte_t*)(tradeMsg + 1) - message) > sizeof(message))
             break;
         }
-        header->size = (byte_t*)(tradeMsg + 1) - message;
+        header->size = (byte_t*)tradeMsg - message;
         if(!socket.send(message, header->size))
           return false;
       }
-
     }
     break;
   case Protocol::tradeMessage:
