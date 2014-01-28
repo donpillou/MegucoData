@@ -106,7 +106,7 @@ bool_t RelayConnection::sendServerTime(uint64_t time)
   Protocol::TimeMessage* timeMessage = (Protocol::TimeMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::tradeMessage;
+  header->messageType = Protocol::timeMessage;
   timeMessage->time = time;
   if(!socket.send(message, sizeof(message)))
   {
