@@ -321,7 +321,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::tradeMessage;
+      header->messageType = Protocol::timeResponse;
       timeRespnse->time = Time::time();
       client.send((byte_t*)message, sizeof(message));
     }
