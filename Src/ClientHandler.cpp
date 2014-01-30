@@ -230,7 +230,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::subscribeResponse;
+      header->messageType = Protocol::unsubscribeResponse;
       Memory::copy(unsubscribeResponse->channel, (const char_t*)channelName, channelName.length() + 1);
       unsubscribeResponse->channelId = channelId;
       client.send(message, sizeof(message));

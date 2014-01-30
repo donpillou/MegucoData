@@ -210,7 +210,8 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
           if(!socket.send(message, sizeof(message)))
             break;
         }
-        ++itTrade;
+        if(itTrade != itTradeEnd)
+          ++itTrade;
 
         byte_t message[4000];
         Protocol::Header* header = (Protocol::Header*)message;
