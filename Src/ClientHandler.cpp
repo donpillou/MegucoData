@@ -223,6 +223,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         return;
       }
       subscriptions.remove(it);
+      channel->removeListener(*this);
 
       byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::UnsubscribeResponse)];
       Protocol::Header* header = (Protocol::Header*)message;
