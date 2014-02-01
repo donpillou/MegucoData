@@ -15,9 +15,16 @@
 
 #include "Tools/RelayConnection.h"
 
+#ifdef MARKET_BITSTAMPUSD
 #include "Markets/BitstampUsd.h"
 typedef BitstampUsd MarketConnection;
 const char* exchangeName = "BitstampUsd";
+#endif
+#ifdef MARKET_MTGOXUSD
+#include "Markets/MtGoxUsd.h"
+typedef MtGoxUsd MarketConnection;
+const char* exchangeName = "MtGoxUsd";
+#endif
 
 int_t main(int_t argc, char_t* argv[])
 {

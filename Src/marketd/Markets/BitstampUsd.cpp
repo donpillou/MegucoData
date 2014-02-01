@@ -19,13 +19,13 @@ bool_t BitstampUsd::connect()
     return false;
   }
 
-  String subscribeMessage("{\"event\":\"pusher:subscribe\",\"data\":{\"channel\":\"live_trades\"}}");
-  if(!websocket.send((const byte_t*)(const char_t*)subscribeMessage, subscribeMessage.length()))
+  if(!websocket.send("{\"event\":\"pusher:subscribe\",\"data\":{\"channel\":\"live_trades\"}}"))
   {
     error = websocket.getErrorString();
     websocket.close();
     return false;
   }
+  lastPingTime = Time::time();
 
   HttpRequest httpRequest;
   Buffer data;

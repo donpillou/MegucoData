@@ -151,7 +151,7 @@ private:
     virtual void_t read()
     {
       size_t bufferSize = recvBuffer.size();
-      recvBuffer.resize(bufferSize + (1500 + 1));
+      recvBuffer.resize(bufferSize + 1500);
       size_t received;
       if(!recv(recvBuffer + bufferSize, 1500, received))
       {
@@ -159,9 +159,8 @@ private:
         return;
       }
       bufferSize += received;
-      recvBuffer[bufferSize] = 0;
-      size_t handled = client.listener ? client.listener->handle(recvBuffer, bufferSize) : bufferSize;
       recvBuffer.resize(bufferSize);
+      size_t handled = client.listener ? client.listener->handle(recvBuffer, bufferSize) : bufferSize;
       recvBuffer.removeFront(handled);
     }
 

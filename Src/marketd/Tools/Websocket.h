@@ -15,6 +15,7 @@ public:
   bool_t isOpen() const;
   bool_t recv(Buffer& buffer, timestamp_t timeout);
   bool_t send(const byte_t* buffer, size_t size);
+  bool_t send(const String& data);
   bool_t sendPing();
 
   const String& getErrorString() const {return error;}

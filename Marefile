@@ -27,6 +27,7 @@ targets = {
   "$(markets)" = cppApplication + {
     folder = "Markets"
     dependencies = { "libnstd" }
+    defines += { "MARKET_$(upper $(target))" }
     buildDir = "Build/$(configuration)/$(target)"
     includePaths = {
       "Ext/libnstd/include"

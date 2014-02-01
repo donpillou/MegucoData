@@ -11,9 +11,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>traded</ProjectName>
-    <ProjectGuid>{AFD38CB1-8645-FADE-92F8-1B6C2F08863B}</ProjectGuid>
-    <RootNamespace>traded</RootNamespace>
+    <ProjectName>MtGoxUsd</ProjectName>
+    <ProjectGuid>{0CABBDD1-68B0-4F77-E213-150B221B782A}</ProjectGuid>
+    <RootNamespace>MtGoxUsd</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -37,22 +37,24 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build\Debug\traded\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build\Debug\traded\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build\Debug\MtGoxUsd\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Build\Debug\MtGoxUsd\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</LinkIncremental>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build\Release\traded\</OutDir>
-    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build\Release\traded\</IntDir>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">traded</TargetName>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build\Release\MtGoxUsd\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Build\Release\MtGoxUsd\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MtGoxUsd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">.exe</TargetExt>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">traded</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">MtGoxUsd</TargetName>
     <TargetExt Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">.exe</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
-      <AdditionalIncludeDirectories>Ext/libnstd/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Ext/libnstd/include;Src;Src/marketd;Ext/curl/include;Build/Debug/libcurl/include;Build/Debug/libcurl/include/curl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MARKET_MTGOXUSD;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ResourceCompile>
+      <PreprocessorDefinitions>MARKET_MTGOXUSD;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -60,8 +62,8 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>nstd.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>Build/Debug/libnstd;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nstd.lib;curl.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>Build/Debug/libnstd;Build/Debug/libcurl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -69,9 +71,11 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>MaxSpeed</Optimization>
       <OmitFramePointers>true</OmitFramePointers>
-      <AdditionalIncludeDirectories>Ext/libnstd/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Ext/libnstd/include;Src;Src/marketd;Ext/curl/include;Build/Release/libcurl/include;Build/Release/libcurl/include/curl;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>MARKET_MTGOXUSD;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <ResourceCompile>
+      <PreprocessorDefinitions>MARKET_MTGOXUSD;CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
     <ProjectReference>
       <LinkLibraryDependencies>false</LinkLibraryDependencies>
@@ -80,37 +84,34 @@
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>nstd.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>Build/Release/libnstd;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>nstd.lib;curl.lib;ws2_32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>Build/Release/libnstd;Build/Release/libcurl;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Src\Channel.cpp" />
-    <ClCompile Include="Src\ClientHandler.cpp" />
-    <ClCompile Include="Src\Main.cpp" />
-    <ClCompile Include="Src\ServerHandler.cpp" />
-    <ClCompile Include="Src\SinkClient.cpp" />
+    <ClCompile Include="Src\marketd\Markets\MtGoxUsd.cpp" />
+    <ClInclude Include="Src\marketd\Markets\MtGoxUsd.h" />
     <ClCompile Include="Src\Tools\Socket.cpp" />
-    <ClInclude Include="Src\Channel.h" />
-    <ClInclude Include="Src\ClientHandler.h" />
-    <ClInclude Include="Src\Protocol.h" />
-    <ClInclude Include="Src\ServerHandler.h" />
-    <ClInclude Include="Src\SinkClient.h" />
-    <ClInclude Include="Src\Tools\Math.h" />
-    <ClInclude Include="Src\Tools\Server.h" />
     <ClInclude Include="Src\Tools\Socket.h" />
+    <ClInclude Include="Src\Protocol.h" />
+    <ClCompile Include="Src\marketd\Tools\HttpRequest.cpp" />
+    <ClCompile Include="Src\marketd\Tools\Json.cpp" />
+    <ClCompile Include="Src\marketd\Tools\RelayConnection.cpp" />
+    <ClCompile Include="Src\marketd\Tools\Websocket.cpp" />
+    <ClInclude Include="Src\marketd\Tools\HttpRequest.h" />
+    <ClInclude Include="Src\marketd\Tools\Json.h" />
+    <ClInclude Include="Src\marketd\Tools\Market.h" />
+    <ClInclude Include="Src\marketd\Tools\RelayConnection.h" />
+    <ClInclude Include="Src\marketd\Tools\Websocket.h" />
+    <ClCompile Include="Src\marketd\Main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="libnstd.vcxproj">
       <Project>{1D074E03-57E5-6936-E94F-A55DBEEEDABF}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="BitstampUsd.vcxproj">
-      <Project>{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}</Project>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
-    <ProjectReference Include="MtGoxUsd.vcxproj">
-      <Project>{0CABBDD1-68B0-4F77-E213-150B221B782A}</Project>
+    <ProjectReference Include="libcurl.vcxproj">
+      <Project>{52083E93-A983-4E94-88B2-7A56C0E8AFDE}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>

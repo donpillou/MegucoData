@@ -46,6 +46,9 @@ Websocket::~Websocket()
 
 bool_t Websocket::connect(const String& url)
 {
+  if(s)
+    return false;
+
   // parse url
   String path("/"), host;
   uint16_t port = 80;
@@ -146,7 +149,7 @@ bool_t Websocket::connect(const String& url)
     const char_t* headerEnd = buffer.find("\r\n\r\n");
     if(headerEnd != 0)
     {
-      recvBuffer.reserve(1500);
+      recvBuffer.reserve(4500);
       recvBuffer.append((byte_t*)headerEnd + 4, totalReceived - (headerEnd + 4 - (const char_t*)buffer));
       break;
     }
@@ -211,6 +214,8 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
       uint8_t masking_key[4];
   };
 
+  buffer.clear();
+
   for(;;)
   {
     for(;;)
@@ -263,18 +268,20 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
 
       // We got a whole message, now do something with it:
       if (false) { }
+//      else if (ws.opcode == wsheader_type::CONTINUATION) {
+//          if (ws.mask) { for (size_t i = 0; i != ws.N; ++i) { data[i+ws.header_size] ^= ws.masking_key[i&0x3]; } }
+//          buffer.append((const byte_t*)recvBuffer + ws.header_size, (size_t)ws.N);
+//          recvBuffer.removeFront(ws.header_size + (size_t)ws.N);
+//      }
       else if (ws.opcode == wsheader_type::TEXT_FRAME && ws.fin) {
           if (ws.mask) { for (size_t i = 0; i != ws.N; ++i) { data[i+ws.header_size] ^= ws.masking_key[i&0x3]; } }
-          if(recvBuffer.size() == ws.header_size + (size_t)ws.N)
+          if(recvBuffer.size() == ws.header_size + (size_t)ws.N /*&& buffer.isEmpty() */)
           {
             recvBuffer.removeFront(ws.header_size);
-            buffer.free();
-            buffer.reserve(recvBuffer.capacity());
             buffer.swap(recvBuffer);
           }
           else
           {
-            buffer.clear();
             buffer.append((const byte_t*)recvBuffer + ws.header_size, (size_t)ws.N);
             recvBuffer.removeFront(ws.header_size + (size_t)ws.N);
           }
@@ -288,7 +295,6 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
       else if (ws.opcode == wsheader_type::PONG) { }
       else if (ws.opcode == wsheader_type::CLOSE) {
         close();
-        buffer.clear();
         error = "Connection was closed.";
         return false;
       }
@@ -302,30 +308,38 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
     }
 
     //
-    if(recvBuffer.size() == recvBuffer.capacity())
+    if(recvBuffer.size() >= 4500)
     {
       error = "Received data frame is too large.";
       close();
       return false;
     }
     size_t received;
-    if(!receive((byte_t*)recvBuffer + recvBuffer.size(), recvBuffer.capacity() - recvBuffer.size(), timeout, received))
+    size_t recvBufferSize = recvBuffer.size();
+    recvBuffer.resize(recvBufferSize + 4500);
+    if(!receive((byte_t*)recvBuffer + recvBufferSize, 4500, timeout, received))
     {
       close();
       return false;
     }
     if(received == 0)
     {
-      buffer.clear();
+      recvBuffer.resize(recvBufferSize);
       return true;
     }
-    recvBuffer.resize(recvBuffer.size() + received);
+    recvBufferSize += received;
+    recvBuffer.resize(recvBufferSize);
   }
 }
 
 bool_t Websocket::send(const byte_t* buffer, size_t size)
 {
   return sendFrame(0x1, buffer, size);
+}
+
+bool_t Websocket::send(const String& data)
+{
+  return sendFrame(0x1, (const byte_t*)(const char_t*)data, data.length());
 }
 
 bool_t Websocket::sendPing()
