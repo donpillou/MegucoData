@@ -7,7 +7,7 @@
 class MtGoxUsd : public Market
 {
 public:
-  MtGoxUsd() : lastPingTime(0), websocket("https://github.com/donpillou/traded") {}
+  MtGoxUsd() : websocket("https://github.com/donpillou/traded"), lastPingTime(0) {}
 
   virtual String getChannelName() const {return String("MtGox/USD");}
   virtual bool_t connect();
