@@ -91,7 +91,7 @@ bool_t MtGoxUsd::process(Callback& callback)
       trade.id = tradeMap.find("tid")->toUInt64();
       trade.amount =  tradeMap.find("amount_int")->toUInt64() / (double)100000000ULL;;
       trade.price = tradeMap.find("price_int")->toUInt64() / (double)100000ULL;;
-      trade.time = tradeMap.find("date")->toInt64() / 1000LL;
+      trade.time = tradeMap.find("date")->toInt64() * 1000LL;
       trade.flags = 0;
       String itemCurrency = tradeMap.find("item")->toString().toUpperCase();
       String priceCurrency = tradeMap.find("price_currency")->toString().toUpperCase();
@@ -159,7 +159,7 @@ bool_t MtGoxUsd::handleStreamData(const Buffer& data, Callback& callback)
       trade.id = tradeMap.find("tid")->toUInt64();
       trade.amount =  tradeMap.find("amount_int")->toUInt64() / (double)100000000ULL;;
       trade.price = tradeMap.find("price_int")->toUInt64() / (double)100000ULL;;
-      trade.time = tradeMap.find("date")->toInt64() / 1000LL;
+      trade.time = tradeMap.find("date")->toInt64() * 1000LL;
       trade.flags = 0;
 
       String itemCurrency = tradeMap.find("item")->toString().toUpperCase();
