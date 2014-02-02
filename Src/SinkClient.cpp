@@ -258,7 +258,7 @@ bool_t SinkClient::handleTradeMessage(Protocol::TradeMessage& tradeMessage)
   addTrade(tradeMessage.trade);
 
   // save trade data in file
-  String currentfileDate = Time::toString(trade.time, "%Y-%m-%d");
+  String currentfileDate = Time(trade.time, true).toString("%Y-%m-%d");
   if(currentfileDate != fileDate)
   {
     file.close();
