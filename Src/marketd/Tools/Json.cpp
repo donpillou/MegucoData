@@ -10,6 +10,37 @@ public:
   Variant value;
 };
 
+static bool_t appendAsUtf8(String& str, uint_t ch)
+{
+  if (ch < 0x80)
+  {
+    str.append((char_t)ch);
+    return true;
+  }
+  if (ch < 0x800)
+  {
+    str.append((ch>>6) | 0xC0);
+    str.append((ch & 0x3F) | 0x80);
+    return true;
+  }
+  if (ch < 0x10000)
+  {
+    str.append((ch>>12) | 0xE0);
+    str.append(((ch>>6) & 0x3F) | 0x80);
+    str.append((ch & 0x3F) | 0x80);
+    return true;
+  }
+  if (ch < 0x110000)
+  {
+    str.append((ch>>18) | 0xF0);
+    str.append(((ch>>12) & 0x3F) | 0x80);
+    str.append(((ch>>6) & 0x3F) | 0x80);
+    str.append((ch & 0x3F) | 0x80);
+    return true;
+  }
+  return false;
+}
+
 static bool nextToken(const tchar_t*& data, Token& token)
 {
   while(String::isSpace(*data))
@@ -70,8 +101,7 @@ static bool nextToken(const tchar_t*& data, Token& token)
             case 'u':
               {
                 ++data;
-                String k;
-                k.reserve(4);
+                String k(4);
                 for(int i = 0; i < 4; ++i)
                   if(*data)
                   {
@@ -82,10 +112,7 @@ static bool nextToken(const tchar_t*& data, Token& token)
                     break;
                 int_t i;
                 if(k.scanf("%x", &i) == 1)
-                {
-                  k.printf("%lc", (wchar_t)i);
-                  value.append(k);
-                }
+                  appendAsUtf8(value, i);
                 break;
               }
               break;
