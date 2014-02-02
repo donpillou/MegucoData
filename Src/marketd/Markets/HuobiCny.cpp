@@ -100,11 +100,15 @@ bool_t HuobiCny::process(Callback& callback)
           tradeTimestamp += tradeTimestamp > approxServerTimestamp ? -24 * 60 * 60 * 1000LL : 24 * 60 * 60 * 1000LL;
 
         trade.time = tradeTimestamp - 8 * 60 * 60 * 1000LL;
+        trade.id = trade.time;
+        if(trade.id == lastTradeId)
+          ++trade.id;
         trade.amount = tradeData.find("amount")->toDouble();
         trade.price = tradeData.find("price")->toDouble();
         trade.flags = 0;
 
         callback.receivedTrade(trade);
+        lastTradeId = trade.id;
 
         if(i == begin)
           break;

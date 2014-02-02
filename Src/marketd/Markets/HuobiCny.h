@@ -8,6 +8,8 @@
 class HuobiCny : public Market
 {
 public:
+  HuobiCny() : open(false), lastTradeId(0) {}
+
   virtual String getChannelName() const {return String("Huobi/CNY");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
@@ -20,4 +22,5 @@ private:
   bool_t open;
 
   List<String> lastTradeList;
+  uint64_t lastTradeId;
 };
