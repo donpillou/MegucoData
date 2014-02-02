@@ -25,6 +25,11 @@ const char* exchangeName = "BitstampUsd";
 typedef MtGoxUsd MarketConnection;
 const char* exchangeName = "MtGoxUsd";
 #endif
+#ifdef MARKET_HUOBICNY
+#include "Markets/HuobiCny.h"
+typedef HuobiCny MarketConnection;
+const char* exchangeName = "HuobiCny";
+#endif
 
 int_t main(int_t argc, char_t* argv[])
 {
