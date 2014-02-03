@@ -19,14 +19,14 @@ bool_t MtGoxUsd::connect()
     return false;
   }
 
-//  if(!websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"ticker\"}") ||
-//     !websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"trades\"}") ||
-//     !websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"depth\"}"))
-//  {
-//    error = websocket.getErrorString();
-//    websocket.close();
-//    return false;
-//  }
+  if(!websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"ticker\"}") ||
+     !websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"trades\"}") ||
+     !websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"depth\"}"))
+  {
+    error = websocket.getErrorString();
+    websocket.close();
+    return false;
+  }
   lastPingTime = Time::time();
 
   HttpRequest httpRequest;
@@ -137,9 +137,9 @@ bool_t MtGoxUsd::process(Callback& callback)
 bool_t MtGoxUsd::sendPing()
 {
   // mtgox websocket server does not support websockt pings. hence lets send some valid commands
-//  if(!websocket.send("{\"op\": \"unsubscribe\",\"channel\": \"d5f06780-30a8-4a48-a2f8-7ed181b4a13f \"}") ||
-//     !websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"ticker\"}"))
-//    return false;
+  if(!websocket.send("{\"op\": \"unsubscribe\",\"channel\": \"d5f06780-30a8-4a48-a2f8-7ed181b4a13f \"}") ||
+     !websocket.send("{\"op\": \"mtgox.subscribe\",\"type\": \"ticker\"}"))
+    return false;
   return true;
 }
 
