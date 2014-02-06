@@ -30,6 +30,11 @@ const char* exchangeName = "MtGoxUsd";
 typedef HuobiCny MarketConnection;
 const char* exchangeName = "HuobiCny";
 #endif
+#ifdef MARKET_BTCCHINA
+#include "Markets/BtcChina.h"
+typedef BtcChina MarketConnection;
+const char* exchangeName = "BtcChinaCny";
+#endif
 
 int_t main(int_t argc, char_t* argv[])
 {
