@@ -5,10 +5,10 @@
 
 #include "Tools/Market.h"
 
-class BtcChina : public Market
+class BtcChinaCny : public Market
 {
 public:
-  BtcChina() : open(false), lastTradeId(0), timeOffset(0), timeOffsetSet(false) {}
+  BtcChinaCny() : open(false), lastTradeId(0), timeOffset(0), timeOffsetSet(false) {}
 
   virtual String getChannelName() const {return String("BtcChina/CNY");}
   virtual bool_t connect();

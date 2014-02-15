@@ -6,8 +6,8 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\marketd\Markets\BtcChina.cpp" />
-    <ClInclude Include="Src\marketd\Markets\BtcChina.h" />
+    <ClCompile Include="Src\marketd\Markets\BtcChinaCny.cpp" />
+    <ClInclude Include="Src\marketd\Markets\BtcChinaCny.h" />
     <ClCompile Include="Src\Tools\Socket.cpp">
       <Filter>Tools</Filter>
     </ClCompile>

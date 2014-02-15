@@ -109,8 +109,8 @@
       <Project>{3894BD01-1B0F-EC91-6DFB-C16F251A86D6}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="BtcChina.vcxproj">
-      <Project>{D3089798-DA7C-0D25-C7DB-E90AAE7246CC}</Project>
+    <ProjectReference Include="BtcChinaCny.vcxproj">
+      <Project>{61D9FBCF-0314-200D-4975-6024ECF5BA76}</Project>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="HuobiCny.vcxproj">
