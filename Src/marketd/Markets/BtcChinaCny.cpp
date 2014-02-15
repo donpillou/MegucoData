@@ -23,7 +23,7 @@ bool_t BtcChinaCny::process(Callback& callback)
   HttpRequest httpRequest;
   Buffer data;
   String dataStr;
-  for(;; Thread::sleep(2000))
+  for(;; Thread::sleep(14000))
   {
     String url("https://data.btcchina.com/data/historydata");
     if(lastTradeId != 0)
@@ -34,8 +34,9 @@ bool_t BtcChinaCny::process(Callback& callback)
       open = false;
       return false;
     }
-    timestamp_t localTime =Time::time();
+    timestamp_t localTime = Time::time();
 
+    dataStr.attach((const char_t*)(byte_t*)data, data.size());
     Variant dataVar;
     if(!Json::parse(dataStr, dataVar))
     {
@@ -64,7 +65,7 @@ bool_t BtcChinaCny::process(Callback& callback)
     {
       const HashMap<String, Variant>& tradeData = i->toMap();
       trade.id = tradeData.find("tid")->toInt64();
-      trade.time = tradeData.find("date")->toInt64();
+      trade.time = tradeData.find("date")->toInt64() * 1000LL;
       trade.price = tradeData.find("price")->toDouble();
       trade.amount = tradeData.find("amount")->toDouble();
       trade.flags = 0;
