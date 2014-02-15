@@ -107,7 +107,8 @@ bool_t HuobiCny::process(Callback& callback)
         trade.price = tradeData.find("price")->toDouble();
         trade.flags = 0;
 
-        callback.receivedTrade(trade);
+        if(!callback.receivedTrade(trade))
+          return false;
         lastTradeId = trade.id;
 
         if(i == begin)
