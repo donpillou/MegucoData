@@ -170,7 +170,6 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         return;
       Subscription& subscription = subscriptions.append(channelId, Subscription());
       subscription.channel = channel;
-      channel->addListener(*this);
 
       byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::SubscribeResponse)];
       Protocol::Header* header = (Protocol::Header*)message;
@@ -197,6 +196,8 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         tradeRequest->maxAge = request->maxAge;
         sinkClient->client.send(message, sizeof(message));
       }
+      else
+        channel->addListener(*this);
     }
     break;
   case Protocol::unsubscribeRequest:
