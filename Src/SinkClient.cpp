@@ -296,4 +296,6 @@ void_t SinkClient::addTrade(const Protocol::Trade& trade)
     trades.removeFront();
   while(keyTime - keyTrades.begin().key() > 7ULL * 24ULL)
     keyTrades.removeFront();
+
+  lastTradeId = trade.id;
 }
