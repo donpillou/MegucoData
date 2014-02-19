@@ -384,12 +384,13 @@ void_t ClientHandler::sendErrorResponse(Protocol::MessageType messageType, uint6
   byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::ErrorResponse)];
   Protocol::Header* header = (Protocol::Header*)message;
   Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)(header + 1);
+  header->size = sizeof(message);
   header->destination = destination;
   header->source = 0;
   header->messageType = Protocol::errorResponse;
   errorResponse->messageType = messageType;
   errorResponse->channelId = channelId;
-  Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, Math::min(errorMessage.length(), sizeof(errorResponse->errorMessage) - 1));
+  Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, Math::min(errorMessage.length() + 1, sizeof(errorResponse->errorMessage) - 1));
   errorResponse->errorMessage[sizeof(errorResponse->errorMessage) - 1] = '\0';
   client.send(message, sizeof(message));
 }
