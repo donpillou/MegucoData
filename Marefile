@@ -64,6 +64,9 @@ targets = {
         "Build/$(configuration)/libcurl"
       }
     }
+    if platform == "Linux" {
+      libs += { "pthread", "rt" }
+    }
   }
 
   libnstd = cppStaticLibrary + {
