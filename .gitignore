@@ -1,4 +1,5 @@
 Build/
+Data/
 icons/
 *.sdf
 *.opensdf
@@ -6,4 +7,6 @@ icons/
 *.vcxproj.user
 generateVs*.bat
 ipch/
-mare.exe
+*.vcxproj
+*.vcxproj.filters
+*.sln
