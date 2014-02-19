@@ -35,6 +35,11 @@ const char* exchangeName = "HuobiCny";
 typedef BtcChinaCny MarketConnection;
 const char* exchangeName = "BtcChinaCny";
 #endif
+#ifdef MARKET_BITFINEXUSD
+#include "Markets/BitfinexUsd.h"
+typedef BitfinexUsd MarketConnection;
+const char* exchangeName = "BitfinexUsd";
+#endif
 
 int_t main(int_t argc, char_t* argv[])
 {
