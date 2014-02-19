@@ -4,6 +4,6 @@ icons/
 *.opensdf
 *.suo
 *.vcxproj.user
-*.bat
+generateVs*.bat
 ipch/
 mare.exe

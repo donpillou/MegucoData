@@ -4,3 +4,6 @@
 [submodule "Ext/curl"]
 	path = Ext/curl
 	url = https://github.com/bagder/curl.git
+[submodule "Ext/mare"]
+	path = Ext/mare
+	url = https://github.com/craflin/mare
