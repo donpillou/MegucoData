@@ -1,5 +1,5 @@
 
-markets = "Src/marketd/Markets/*.cpp"; markets = "$(patsubst Src/marketd/Markets/%.cpp,%,$(markets))"
+markets = "Src/Markets/Markets/*.cpp"; markets = "$(patsubst Src/Markets/Markets/%.cpp,%,$(markets))"
 
 targets = {
 
@@ -14,7 +14,7 @@ targets = {
       "Src/**.cpp" = cppSource
       "Src/**.h"
     }
-    files -= { "Src/marketd/**" }
+    files -= { "Src/Markets/**" }
     if tool == "vcxproj" {
       libs += { "ws2_32" }
       linkFlags += { "/SUBSYSTEM:CONSOLE" }
@@ -33,23 +33,23 @@ targets = {
     includePaths = {
       "Ext/libnstd/include"
       "Src",
-      "Src/marketd",
+      "Src/Markets",
     }
     libPaths = {
       "Build/$(configuration)/libnstd"
     }
     libs = { "nstd", "curl" }
-    root = { "Src/marketd/Markets", "Src/marketd", "Src" }
+    root = { "Src/Markets/Markets", "Src/Markets", "Src" }
     files = {
-      "Src/marketd/Markets/$(target).cpp" = cppSource
-      "Src/marketd/Markets/$(target).h"
+      "Src/Markets/Markets/$(target).cpp" = cppSource
+      "Src/Markets/Markets/$(target).h"
       "Src/Tools/Socket.cpp" = cppSource
       "Src/Tools/Socket.h"
       "Src/Protocol.h"
-      "Src/marketd/Tools/**.cpp" = cppSource
-      "Src/marketd/Tools/**.h"
-      "Src/marketd/*.cpp" = cppSource
-      "Src/marketd/*.h"
+      "Src/Markets/Tools/**.cpp" = cppSource
+      "Src/Markets/Tools/**.h"
+      "Src/Markets/*.cpp" = cppSource
+      "Src/Markets/*.h"
     }
     if tool == "vcxproj" {
       libs += { "ws2_32" }
