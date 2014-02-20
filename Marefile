@@ -21,6 +21,7 @@ targets = {
     }
     if platform == "Linux" {
       libs += { "pthread", "rt" }
+      cppFlags += { "-Wno-delete-non-virtual-dtor" }
     }
   }
   
