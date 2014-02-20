@@ -1,5 +1,7 @@
 
-markets = "Src/Markets/Markets/*.cpp"; markets = "$(patsubst Src/Markets/Markets/%.cpp,%,$(markets))"
+markets = "Src/Markets/*.cpp"
+markets = "$(patsubst Src/Markets/%.cpp,%,$(markets))"
+markets -= "Main"
 
 targets = {
 
@@ -39,17 +41,16 @@ targets = {
       "Build/$(configuration)/libnstd"
     }
     libs = { "nstd", "curl" }
-    root = { "Src/Markets/Markets", "Src/Markets", "Src" }
+    root = { "Src/Markets", "Src" }
     files = {
-      "Src/Markets/Markets/$(target).cpp" = cppSource
-      "Src/Markets/Markets/$(target).h"
+      "Src/Markets/$(target).cpp" = cppSource
+      "Src/Markets/$(target).h"
       "Src/Tools/Socket.cpp" = cppSource
       "Src/Tools/Socket.h"
       "Src/Protocol.h"
       "Src/Markets/Tools/**.cpp" = cppSource
       "Src/Markets/Tools/**.h"
-      "Src/Markets/*.cpp" = cppSource
-      "Src/Markets/*.h"
+      "Src/Markets/Main.cpp" = cppSource
     }
     if tool == "vcxproj" {
       libs += { "ws2_32" }
