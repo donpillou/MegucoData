@@ -280,9 +280,9 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         treadeMessage->trade.time = trade->time;
         treadeMessage->trade.price = trade->price;
         treadeMessage->trade.amount = trade->amount;
-        treadeMessage->trade.flags = trade->flags | Protocol::TradeFlag::replayedFlag;
+        treadeMessage->trade.flags = trade->flags | Protocol::replayedFlag;
         if(trade->id == newestChannelTradeId)
-          treadeMessage->trade.flags |= Protocol::TradeFlag::syncFlag;
+          treadeMessage->trade.flags |= Protocol::syncFlag;
         client.send(message, sizeof(message));
         subscription.lastReplayedTradeId = trade->id;
       }
