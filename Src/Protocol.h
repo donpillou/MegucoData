@@ -28,6 +28,12 @@ public:
     timeMessage,
   };
 
+  enum TradeFlag
+  {
+    replayedFlag = 0x01,
+    syncFlag = 0x02,
+  };
+
   //enum ChannelType
   //{
   //  tradeType,

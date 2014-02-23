@@ -271,6 +271,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       header->size = sizeof(message);
       header->destination = header->source = 0;
       header->messageType = Protocol::tradeMessage;
+      uint64_t newestChannelTradeId = subscription.channel->getLastTradeId();
       for(Protocol::Trade* trade = (Protocol::Trade*)(tradeResponse + 1), * tradeEnd = trade + count; trade < tradeEnd; ++trade)
       {
         Protocol::TradeMessage* treadeMessage = (Protocol::TradeMessage*)(header + 1);
@@ -279,11 +280,13 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         treadeMessage->trade.time = trade->time;
         treadeMessage->trade.price = trade->price;
         treadeMessage->trade.amount = trade->amount;
-        treadeMessage->trade.flags = trade->flags;
+        treadeMessage->trade.flags = trade->flags | Protocol::TradeFlag::replayedFlag;
+        if(trade->id == newestChannelTradeId)
+          treadeMessage->trade.flags |= Protocol::TradeFlag::syncFlag;
         client.send(message, sizeof(message));
         subscription.lastReplayedTradeId = trade->id;
       }
-      if(subscription.lastReplayedTradeId == subscription.channel->getLastTradeId())
+      if(subscription.lastReplayedTradeId == newestChannelTradeId)
         subscription.channel->addListener(*this);
       else
         pendingRequests.append(&subscription);
