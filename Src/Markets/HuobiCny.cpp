@@ -89,7 +89,11 @@ bool_t HuobiCny::process(Callback& callback)
 
         int_t hour, min, sec;
         if(tradeData.find("time")->toString().scanf("%d:%d:%d", &hour, &min, &sec) != 3)
-          continue;
+        {
+          error = "Could not determine trade timestamp.";
+          open = false;
+          return false;
+        }
         Time tradeTime(approxServerTime);
         tradeTime.hour = hour;
         tradeTime.min = min;
@@ -98,6 +102,12 @@ bool_t HuobiCny::process(Callback& callback)
 
         if(Math::abs(tradeTimestamp  - approxServerTimestamp) > 12 * 60 * 60 * 1000LL)
           tradeTimestamp += tradeTimestamp > approxServerTimestamp ? -24 * 60 * 60 * 1000LL : 24 * 60 * 60 * 1000LL;
+        if(Math::abs(tradeTimestamp  - approxServerTimestamp) > 60 * 60 * 1000LL)
+        {
+          error = "Could not determine trade timestamp.";
+          open = false;
+          return false;
+        }
 
         trade.time = tradeTimestamp - 8 * 60 * 60 * 1000LL;
         trade.id = trade.time;
