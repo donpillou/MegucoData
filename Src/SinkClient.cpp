@@ -200,6 +200,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
           byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::ErrorResponse)];
           Protocol::Header* header = (Protocol::Header*)message;
           Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)(header + 1);
+          header->size = sizeof(message);
           header->destination = messageHeader.source;
           header->source = 0;
           header->messageType = Protocol::errorResponse;
