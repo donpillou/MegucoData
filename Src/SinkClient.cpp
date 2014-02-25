@@ -211,32 +211,35 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
           if(!socket.send(message, sizeof(message)))
             break;
         }
-        if(itTrade != itTradeEnd)
-          ++itTrade;
-
-        byte_t message[4000];
-        Protocol::Header* header = (Protocol::Header*)message;
-        header->destination = messageHeader.source;
-        header->source = 0;
-        header->messageType = Protocol::tradeResponse;
-        Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)(header + 1);
-        tradeResponse->channelId = channelId;
-        Protocol::Trade* tradeMsg = (Protocol::Trade*)(tradeResponse + 1);
-        for(; itTrade != itTradeEnd; ++itTrade)
+        else
         {
-          Trade& trade = *itTrade;
-          tradeMsg->id = itTrade.key();
-          tradeMsg->time = trade.time;
-          tradeMsg->price = trade.price;
-          tradeMsg->amount = trade.amount;
-          tradeMsg->flags = trade.flags;
-          ++tradeMsg;
-          if((size_t)((byte_t*)(tradeMsg + 1) - message) > sizeof(message))
-            break;
+          if(itTrade != itTradeEnd)
+            ++itTrade;
+
+          byte_t message[4000];
+          Protocol::Header* header = (Protocol::Header*)message;
+          header->destination = messageHeader.source;
+          header->source = 0;
+          header->messageType = Protocol::tradeResponse;
+          Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)(header + 1);
+          tradeResponse->channelId = channelId;
+          Protocol::Trade* tradeMsg = (Protocol::Trade*)(tradeResponse + 1);
+          for(; itTrade != itTradeEnd; ++itTrade)
+          {
+            Trade& trade = *itTrade;
+            tradeMsg->id = itTrade.key();
+            tradeMsg->time = trade.time;
+            tradeMsg->price = trade.price;
+            tradeMsg->amount = trade.amount;
+            tradeMsg->flags = trade.flags;
+            ++tradeMsg;
+            if((size_t)((byte_t*)(tradeMsg + 1) - message) > sizeof(message))
+              break;
+          }
+          header->size = (byte_t*)tradeMsg - message;
+          if(!socket.send(message, header->size))
+            return false;
         }
-        header->size = (byte_t*)tradeMsg - message;
-        if(!socket.send(message, header->size))
-          return false;
       }
     }
     break;
