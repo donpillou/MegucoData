@@ -183,7 +183,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       client.send(message, sizeof(message));
 
       ClientHandler* sinkClient = channel->getSinkClient();
-      if(request->maxAge != 0 && sinkClient)
+      if((request->maxAge != 0 || request->sinceId != 0) && sinkClient)
       {
         byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeRequest)];
         Protocol::Header* header = (Protocol::Header*)message;
@@ -192,7 +192,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         header->destination = 0;
         header->source = this->id;
         header->messageType = Protocol::tradeRequest;
-        tradeRequest->sinceId = 0;
+        tradeRequest->sinceId = request->sinceId;
         tradeRequest->maxAge = request->maxAge;
         sinkClient->client.send(message, sizeof(message));
       }

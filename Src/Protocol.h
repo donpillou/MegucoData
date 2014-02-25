@@ -65,6 +65,7 @@ public:
   {
     char_t channel[33];
     uint64_t maxAge;
+    uint64_t sinceId;
   };
   struct SubscribeResponse
   {
