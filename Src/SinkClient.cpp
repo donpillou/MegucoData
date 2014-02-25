@@ -49,6 +49,7 @@ uint_t SinkClient::main(void_t* param)
       header->messageType = Protocol::subscribeRequest;
       Memory::copy(subscribeRequest->channel, (const tchar_t*)sinkClient->channelName, sinkClient->channelName.length() + 1);
       subscribeRequest->maxAge = 0;
+      subscribeRequest->sinceId = 0;
       if(!socket.send(message, sizeof(message)))
         break;
     }
