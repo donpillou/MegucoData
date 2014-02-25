@@ -170,6 +170,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         return;
       Subscription& subscription = subscriptions.append(channelId, Subscription());
       subscription.channel = channel;
+      subscription.lastReplayedTradeId = request->sinceId;
 
       byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::SubscribeResponse)];
       Protocol::Header* header = (Protocol::Header*)message;
