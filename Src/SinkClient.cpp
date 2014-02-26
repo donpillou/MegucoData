@@ -269,7 +269,7 @@ bool_t SinkClient::handleTradeMessage(Protocol::TradeMessage& tradeMessage)
     file.close();
     fileDate = currentfileDate;
     fileName = channelName + "/trades-" + fileDate + ".dat";
-    if(!file.open(fileName, File::writeFlag))
+    if(!file.open(fileName, File::writeFlag | File::appendFlag))
       Console::errorf("error: Could not open file %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
   }
   if(file.isOpen())
