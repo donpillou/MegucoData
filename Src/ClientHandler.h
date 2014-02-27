@@ -27,6 +27,7 @@ private:
   virtual void_t write();
 
   virtual void_t addedTrade(Channel& channel, const Protocol::Trade& trade);
+  virtual void_t addedTicker(Channel& channel, const Protocol::TickerMessage& tickerMessage);
 
   class Subscription
   {

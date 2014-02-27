@@ -18,6 +18,7 @@ public:
   uint64_t getChannelId() const {return channelId;}
   bool_t sendTrade(const Market::Trade& trade);
   bool_t sendServerTime(uint64_t time);
+  bool_t sendTicker(const Market::Ticker& ticker);
 
 private:
   Socket socket;

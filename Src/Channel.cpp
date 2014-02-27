@@ -3,6 +3,11 @@
 
 #include "Channel.h"
 
+Channel::Channel(uint64_t id) : id(id), sinkClient(0), sourceClient(0), lastTradeId(0), lastTradeTime(0), serverToLocalTime(0)
+{
+  Memory::zero(&lastTickerMessage, sizeof(lastTickerMessage));
+}
+
 void_t Channel::addTrade(const Protocol::Trade& trade)
 {
   if(trade.id <= lastTradeId)
@@ -19,6 +24,13 @@ void_t Channel::addTrade(const Protocol::Trade& trade)
     (*i)->addedTrade(*this, trade);
   lastTradeId = trade.id;
   lastTradeTime = trade.time;
+}
+
+void_t Channel::addTicker(const Protocol::TickerMessage& tickerMessage)
+{
+  for(HashSet<Listener*>::Iterator i = listeners.begin(), end = listeners.end(); i != end; ++i)
+    (*i)->addedTicker(*this, tickerMessage);
+  lastTickerMessage = tickerMessage;
 }
 
 void_t Channel::setServerTime(uint64_t time)

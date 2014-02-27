@@ -7,12 +7,14 @@ class Market
 {
 public:
   class Trade;
+  class Ticker;
 
   class Callback
   {
   public:
     virtual bool_t receivedTrade(const Trade& trade) = 0;
     virtual bool_t receivedTime(uint64_t time) = 0;
+    virtual bool_t receivedTicker(const Ticker& ticker) = 0;
   };
 
   class Trade
@@ -23,7 +25,14 @@ public:
     double price;
     double amount;
     uint32_t flags;
+  };
 
+  class Ticker
+  {
+  public:
+    uint64_t time;
+    double bid;
+    double ask;
   };
 
   virtual ~Market() {};

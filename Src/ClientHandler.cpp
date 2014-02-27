@@ -288,7 +288,12 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         subscription.lastReplayedTradeId = trade->id;
       }
       if(subscription.lastReplayedTradeId == newestChannelTradeId)
+      {
         subscription.channel->addListener(*this);
+        const Protocol::TickerMessage& tickerMessage = subscription.channel->getLastTicker();
+        if(tickerMessage.time != 0 && tickerMessage.channelId == subscription.channel->getId())
+          addedTicker(*subscription.channel, tickerMessage);
+      }
       else
         pendingRequests.append(&subscription);
     }
@@ -299,6 +304,14 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       Protocol::TradeMessage* tradeMessage = (Protocol::TradeMessage*)data;
       if(channel && channel->getId() == tradeMessage->channelId)
         channel->addTrade(tradeMessage->trade);
+    }
+    break;
+  case Protocol::tickerMessage:
+    if(size >= sizeof(Protocol::TickerMessage))
+    {
+      Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)data;
+      if(channel && channel->getId() == tickerMessage->channelId)
+        channel->addTicker(*tickerMessage);
     }
     break;
   case Protocol::channelRequest:
@@ -370,16 +383,29 @@ void_t ClientHandler::addedTrade(Channel& channel, const Protocol::Trade& trade)
 {
   byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeMessage)];
   Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TradeMessage* treadeMessage = (Protocol::TradeMessage*)(header + 1);
+  Protocol::TradeMessage* tradeMessage = (Protocol::TradeMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
   header->messageType = Protocol::tradeMessage;
-  treadeMessage->channelId = channel.getId();
-  treadeMessage->trade.id = trade.id;
-  treadeMessage->trade.time = channel.toLocalTime(trade.time);
-  treadeMessage->trade.price = trade.price;
-  treadeMessage->trade.amount = trade.amount;
-  treadeMessage->trade.flags = trade.flags;
+  tradeMessage->channelId = channel.getId();
+  tradeMessage->trade.id = trade.id;
+  tradeMessage->trade.time = channel.toLocalTime(trade.time);
+  tradeMessage->trade.price = trade.price;
+  tradeMessage->trade.amount = trade.amount;
+  tradeMessage->trade.flags = trade.flags;
+  client.send(message, sizeof(message));
+}
+
+void_t ClientHandler::addedTicker(Channel& channel, const Protocol::TickerMessage& tickerMessageSrc)
+{
+  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TickerMessage)];
+  Protocol::Header* header = (Protocol::Header*)message;
+  Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)(header + 1);
+  header->size = sizeof(message);
+  header->destination = header->source = 0;
+  header->messageType = Protocol::tradeMessage;
+  *tickerMessage = tickerMessageSrc;
+  tickerMessage->channelId = channel.getId();
   client.send(message, sizeof(message));
 }
 

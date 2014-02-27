@@ -139,6 +139,13 @@ int_t main(int_t argc, char_t* argv[])
       return true;
     }
 
+    virtual bool_t receivedTicker(const Market::Ticker& ticker)
+    {
+      if(!relayConnection->sendTicker(ticker))
+        return false;
+      return true;
+    }
+
     RelayConnection* relayConnection;
   } callback;
   callback.relayConnection = &relayConnection;

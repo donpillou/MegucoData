@@ -116,3 +116,24 @@ bool_t RelayConnection::sendServerTime(uint64_t time)
   }
   return true;
 }
+
+bool_t RelayConnection::sendTicker(const Market::Ticker& ticker)
+{
+  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TickerMessage)];
+  Protocol::Header* header = (Protocol::Header*)message;
+  Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)(header + 1);
+  header->size = sizeof(message);
+  header->destination = header->source = 0;
+  header->messageType = Protocol::tickerMessage;
+  tickerMessage->channelId = channelId;
+  tickerMessage->time = ticker.time;
+  tickerMessage->ask = ticker.ask;
+  tickerMessage->bid = ticker.bid;
+  if(!socket.send(message, sizeof(message)))
+  {
+    error = Socket::getLastErrorString();
+    socket.close();
+    return false;
+  }
+  return true;
+}
