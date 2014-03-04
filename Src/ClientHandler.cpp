@@ -403,7 +403,7 @@ void_t ClientHandler::addedTicker(Channel& channel, const Protocol::TickerMessag
   Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::tradeMessage;
+  header->messageType = Protocol::tickerMessage;
   *tickerMessage = tickerMessageSrc;
   tickerMessage->channelId = channel.getId();
   client.send(message, sizeof(message));
