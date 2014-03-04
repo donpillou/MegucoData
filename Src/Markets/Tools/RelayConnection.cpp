@@ -126,9 +126,9 @@ bool_t RelayConnection::sendTicker(const Market::Ticker& ticker)
   header->destination = header->source = 0;
   header->messageType = Protocol::tickerMessage;
   tickerMessage->channelId = channelId;
-  tickerMessage->time = ticker.time;
-  tickerMessage->ask = ticker.ask;
-  tickerMessage->bid = ticker.bid;
+  tickerMessage->ticker.time = ticker.time;
+  tickerMessage->ticker.ask = ticker.ask;
+  tickerMessage->ticker.bid = ticker.bid;
   if(!socket.send(message, sizeof(message)))
   {
     error = Socket::getLastErrorString();

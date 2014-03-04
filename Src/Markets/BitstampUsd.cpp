@@ -98,23 +98,6 @@ bool_t BitstampUsd::process(Callback& callback)
         if(i == begin)
           break;
       }
-
-    // request ticker data?
-    timestamp_t now = Time::time();
-    if(now - lastTickerTimer >= 30 * 1000)
-    {
-      if(httpRequest.get("https://www.bitstamp.net/api/ticker/", data))
-      {
-        const HashMap<String, Variant>& dataMap = dataVar.toMap();
-        Ticker ticker;
-        ticker.time = dataMap.find("timestamp")->toInt64() * 1000LL;
-        ticker.ask = dataMap.find("ask")->toDouble();
-        ticker.bid = dataMap.find("bid")->toDouble();
-        if(!callback.receivedTicker(ticker))
-            return false;
-      }
-      lastTickerTimer = now;
-    }
   }
 
   Buffer buffer;
@@ -145,6 +128,27 @@ bool_t BitstampUsd::process(Callback& callback)
     lastPingTime = Time::time();
     if(!handleStreamData(buffer, callback))
       return false;
+
+    // request ticker data?
+    timestamp_t now = Time::time();
+    if(now - lastTickerTimer >= 30 * 1000)
+    {
+      if(httpRequest.get("https://www.bitstamp.net/api/ticker/", buffer))
+      {
+        Variant dataVar;
+        if(Json::parse(buffer, dataVar))
+        {
+          const HashMap<String, Variant>& dataMap = dataVar.toMap();
+          Ticker ticker;
+          ticker.time = dataMap.find("timestamp")->toInt64() * 1000LL;
+          ticker.ask = dataMap.find("ask")->toDouble();
+          ticker.bid = dataMap.find("bid")->toDouble();
+          if(!callback.receivedTicker(ticker))
+              return false;
+        }
+      }
+      lastTickerTimer = now;
+    }
   }
   
   return false; // unreachable

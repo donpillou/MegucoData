@@ -291,7 +291,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       {
         subscription.channel->addListener(*this);
         const Protocol::TickerMessage& tickerMessage = subscription.channel->getLastTicker();
-        if(tickerMessage.time != 0 && tickerMessage.channelId == subscription.channel->getId())
+        if(tickerMessage.ticker.time != 0 && tickerMessage.channelId == subscription.channel->getId())
           addedTicker(*subscription.channel, tickerMessage);
       }
       else

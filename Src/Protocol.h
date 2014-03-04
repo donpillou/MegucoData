@@ -142,12 +142,17 @@ public:
     uint64_t time;
   };
 
-  struct TickerMessage
+  struct Ticker
   {
-    uint64_t channelId;
     uint64_t time;
     double bid;
     double ask;
+  };
+
+  struct TickerMessage
+  {
+    uint64_t channelId;
+    Ticker ticker;
   };
 
 #pragma pack(pop)
