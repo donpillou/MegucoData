@@ -46,7 +46,8 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
     if(header->destination && mode == sinkMode)
     {
       ClientHandler* client = serverHandler.findClient(header->destination);
-      client->handleMessage(*header, pos + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
+      if(client)
+        client->handleMessage(*header, pos + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
       pos += header->size;
       size -= header->size;
       continue;
