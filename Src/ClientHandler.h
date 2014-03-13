@@ -5,7 +5,7 @@
 
 #include "Tools/Server.h"
 #include "Channel.h"
-#include "Protocol.h"
+#include "DataProtocol.h"
 
 class ServerHandler;
 
@@ -20,14 +20,14 @@ public:
 private:
   virtual size_t handle(byte_t* data, size_t size);
 
-  void_t handleMessage(const Protocol::Header& header, byte_t* data, size_t size);
+  void_t handleMessage(const DataProtocol::Header& header, byte_t* data, size_t size);
 
-  void_t sendErrorResponse(Protocol::MessageType messageType, uint64_t destination, uint64_t channelId, const String& errorMessage);
+  void_t sendErrorResponse(DataProtocol::MessageType messageType, uint64_t destination, uint64_t channelId, const String& errorMessage);
 
   virtual void_t write();
 
-  virtual void_t addedTrade(Channel& channel, const Protocol::Trade& trade);
-  virtual void_t addedTicker(Channel& channel, const Protocol::TickerMessage& tickerMessage);
+  virtual void_t addedTrade(Channel& channel, const DataProtocol::Trade& trade);
+  virtual void_t addedTicker(Channel& channel, const DataProtocol::TickerMessage& tickerMessage);
 
   class Subscription
   {

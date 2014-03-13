@@ -17,12 +17,12 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
 
   // send register source request
   {
-    byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::RegisterSourceRequest)];
-    Protocol::Header* header = (Protocol::Header*)message;
-    Protocol::RegisterSourceRequest* registerSourceRequest = (Protocol::RegisterSourceRequest*)(header + 1);
+    byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::RegisterSourceRequest)];
+    DataProtocol::Header* header = (DataProtocol::Header*)message;
+    DataProtocol::RegisterSourceRequest* registerSourceRequest = (DataProtocol::RegisterSourceRequest*)(header + 1);
     header->size = sizeof(message);
     header->destination = header->source = 0;
-    header->messageType = Protocol::registerSourceRequest;
+    header->messageType = DataProtocol::registerSourceRequest;
     Memory::copy(registerSourceRequest->channel, channelName, channelName.length() + 1);
     if(!socket.send(message, sizeof(message)))
     {
@@ -34,15 +34,15 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
 
   // receive register source response
   {
-    Protocol::Header header;
-    Protocol::RegisterSinkResponse response;
+    DataProtocol::Header header;
+    DataProtocol::RegisterSinkResponse response;
     if(!socket.recv((byte_t*)&header, sizeof(header)))
     {
       error = Socket::getLastErrorString();
       socket.close();
       return false;
     }
-    if(header.messageType != Protocol::registerSourceResponse)
+    if(header.messageType != DataProtocol::registerSourceResponse)
     {
       error = "Could not receive register source response.";
       socket.close();
@@ -59,14 +59,14 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
 
   // receive registered sink message
   { // waiting for this message ensures that the sink client is ready to save the data we provide
-    Protocol::Header header;
+    DataProtocol::Header header;
     if(!socket.recv((byte_t*)&header, sizeof(header)))
     {
       error = Socket::getLastErrorString();
       socket.close();
       return false;
     }
-    if(header.messageType != Protocol::registeredSinkMessage)
+    if(header.messageType != DataProtocol::registeredSinkMessage)
     {
       error = "Could not receive registered sink message.";
       socket.close();
@@ -78,12 +78,12 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
 
 bool_t RelayConnection::sendTrade(const Market::Trade& trade)
 {
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeMessage)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TradeMessage* tradeMessage = (Protocol::TradeMessage*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeMessage)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::TradeMessage* tradeMessage = (DataProtocol::TradeMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::tradeMessage;
+  header->messageType = DataProtocol::tradeMessage;
   tradeMessage->channelId = channelId;
   tradeMessage->trade.id = trade.id;
   tradeMessage->trade.time = trade.time;
@@ -101,12 +101,12 @@ bool_t RelayConnection::sendTrade(const Market::Trade& trade)
 
 bool_t RelayConnection::sendServerTime(uint64_t time)
 {
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TimeMessage)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TimeMessage* timeMessage = (Protocol::TimeMessage*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TimeMessage)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::TimeMessage* timeMessage = (DataProtocol::TimeMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::timeMessage;
+  header->messageType = DataProtocol::timeMessage;
   timeMessage->time = time;
   if(!socket.send(message, sizeof(message)))
   {
@@ -119,12 +119,12 @@ bool_t RelayConnection::sendServerTime(uint64_t time)
 
 bool_t RelayConnection::sendTicker(const Market::Ticker& ticker)
 {
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TickerMessage)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TickerMessage)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::TickerMessage* tickerMessage = (DataProtocol::TickerMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::tickerMessage;
+  header->messageType = DataProtocol::tickerMessage;
   tickerMessage->channelId = channelId;
   tickerMessage->ticker.time = ticker.time;
   tickerMessage->ticker.ask = ticker.ask;

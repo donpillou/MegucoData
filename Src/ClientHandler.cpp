@@ -3,7 +3,7 @@
 
 #include "ClientHandler.h"
 #include "ServerHandler.h"
-#include "Protocol.h"
+#include "DataProtocol.h"
 
 #include "Tools/Math.h"
 
@@ -33,10 +33,10 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
   byte_t* pos = data;
   while(size > 0)
   {
-    if(size < sizeof(Protocol::Header))
+    if(size < sizeof(DataProtocol::Header))
       break;
-    Protocol::Header* header = (Protocol::Header*)pos;
-    if(header->size < sizeof(Protocol::Header) || header->size >= 5000)
+    DataProtocol::Header* header = (DataProtocol::Header*)pos;
+    if(header->size < sizeof(DataProtocol::Header) || header->size >= 5000)
     {
       client.close();
       return 0;
@@ -47,12 +47,12 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
     {
       ClientHandler* client = serverHandler.findClient(header->destination);
       if(client)
-        client->handleMessage(*header, pos + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
+        client->handleMessage(*header, pos + sizeof(DataProtocol::Header), header->size - sizeof(DataProtocol::Header));
       pos += header->size;
       size -= header->size;
       continue;
     }
-    handleMessage(*header, pos + sizeof(Protocol::Header), header->size - sizeof(Protocol::Header));
+    handleMessage(*header, pos + sizeof(DataProtocol::Header), header->size - sizeof(DataProtocol::Header));
     pos += header->size;
     size -= header->size;
   }
@@ -64,14 +64,14 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
   return pos - data;
 }
 
-void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_t* data, size_t size)
+void_t ClientHandler::handleMessage(const DataProtocol::Header& messageHeader, byte_t* data, size_t size)
 {
-  switch((Protocol::MessageType)messageHeader.messageType)
+  switch((DataProtocol::MessageType)messageHeader.messageType)
   {
-  case Protocol::registerSourceRequest:
-    if(clientAddr == Socket::loopbackAddr && size >= sizeof(Protocol::RegisterSourceRequest) && channel == 0)
+  case DataProtocol::registerSourceRequest:
+    if(clientAddr == Socket::loopbackAddr && size >= sizeof(DataProtocol::RegisterSourceRequest) && channel == 0)
     {
-      Protocol::RegisterSourceRequest* request = (Protocol::RegisterSourceRequest*)data;
+      DataProtocol::RegisterSourceRequest* request = (DataProtocol::RegisterSourceRequest*)data;
       request->channel[sizeof(request->channel) - 1] = '\0';
       String channelName(request->channel, String::length(request->channel));
       channel = serverHandler.findChannel(channelName);
@@ -82,7 +82,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         {
           String errorMessage;
           errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
-          sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
+          sendErrorResponse((DataProtocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
           return;
         }
       }
@@ -90,30 +90,30 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         channel->getSourceClient()->client.close();
       channel->setSourceClient(this);
       mode = sourceMode;
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::RegisterSourceResponse)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::RegisterSourceResponse* registerSourceResponse = (Protocol::RegisterSourceResponse*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::RegisterSourceResponse)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::RegisterSourceResponse* registerSourceResponse = (DataProtocol::RegisterSourceResponse*)(header + 1);
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::registerSourceResponse;
+      header->messageType = DataProtocol::registerSourceResponse;
       Memory::copy(registerSourceResponse->channel, (const char_t*)channelName, channelName.length() + 1);
       registerSourceResponse->channelId = channel->getId();
       client.send(message, sizeof(message));
       if(channel->getSinkClient())
       {
-        Protocol::Header header;
+        DataProtocol::Header header;
         header.size = sizeof(header);
         header.destination = header.source = 0;
-        header.messageType = Protocol::registeredSinkMessage;
+        header.messageType = DataProtocol::registeredSinkMessage;
         client.send((byte_t*)&header, sizeof(header));
       }
     }
     break;
-  case Protocol::registerSinkRequest:
-    if(clientAddr == Socket::loopbackAddr && size >= sizeof(Protocol::RegisterSinkRequest) && channel == 0)
+  case DataProtocol::registerSinkRequest:
+    if(clientAddr == Socket::loopbackAddr && size >= sizeof(DataProtocol::RegisterSinkRequest) && channel == 0)
     {
-      Protocol::RegisterSinkRequest* request = (Protocol::RegisterSinkRequest*)data;
+      DataProtocol::RegisterSinkRequest* request = (DataProtocol::RegisterSinkRequest*)data;
       request->channel[sizeof(request->channel) - 1] = '\0';
       String channelName(request->channel, String::length(request->channel));
       channel = serverHandler.findChannel(channelName);
@@ -124,7 +124,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         {
           String errorMessage;
           errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
-          sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
+          sendErrorResponse((DataProtocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
           return;
         }
       }
@@ -132,30 +132,30 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         channel->getSinkClient()->client.close();
       channel->setSinkClient(this);
       mode = sinkMode;
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::RegisterSinkResponse)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::RegisterSinkResponse* registerSinkResponse = (Protocol::RegisterSinkResponse*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::RegisterSinkResponse)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::RegisterSinkResponse* registerSinkResponse = (DataProtocol::RegisterSinkResponse*)(header + 1);
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::registerSinkResponse;
+      header->messageType = DataProtocol::registerSinkResponse;
       Memory::copy(registerSinkResponse->channel, (const char_t*)channelName, channelName.length() + 1);
       registerSinkResponse->channelId = channel->getId();
       client.send(message, sizeof(message));
       if(channel->getSourceClient())
       {
-        Protocol::Header header;
+        DataProtocol::Header header;
         header.size = sizeof(header);
         header.destination = header.source = 0;
-        header.messageType = Protocol::registeredSinkMessage;
+        header.messageType = DataProtocol::registeredSinkMessage;
         channel->getSourceClient()->client.send((byte_t*)&header, sizeof(header));
       }
     }
     break;
-  case Protocol::subscribeRequest:
-    if(size >= sizeof(Protocol::SubscribeRequest))
+  case DataProtocol::subscribeRequest:
+    if(size >= sizeof(DataProtocol::SubscribeRequest))
     {
-      Protocol::SubscribeRequest* request = (Protocol::SubscribeRequest*)data;
+      DataProtocol::SubscribeRequest* request = (DataProtocol::SubscribeRequest*)data;
       request->channel[sizeof(request->channel) - 1] = '\0';
       String channelName(request->channel, String::length(request->channel));
       Channel* channel = serverHandler.findChannel(channelName);
@@ -163,7 +163,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       {
         String errorMessage;
         errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
-        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
+        sendErrorResponse((DataProtocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
         return;
       }
       uint64_t channelId = channel->getId();
@@ -173,13 +173,13 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       subscription.channel = channel;
       subscription.lastReplayedTradeId = request->sinceId;
 
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::SubscribeResponse)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::SubscribeResponse* subscribeResponse = (Protocol::SubscribeResponse*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::SubscribeResponse)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::SubscribeResponse* subscribeResponse = (DataProtocol::SubscribeResponse*)(header + 1);
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::subscribeResponse;
+      header->messageType = DataProtocol::subscribeResponse;
       Memory::copy(subscribeResponse->channel, (const char_t*)channelName, channelName.length() + 1);
       subscribeResponse->channelId = channelId;
       client.send(message, sizeof(message));
@@ -187,13 +187,13 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       ClientHandler* sinkClient = channel->getSinkClient();
       if((request->maxAge != 0 || request->sinceId != 0) && sinkClient)
       {
-        byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeRequest)];
-        Protocol::Header* header = (Protocol::Header*)message;
-        Protocol::TradeRequest* tradeRequest = (Protocol::TradeRequest*)(header + 1);
+        byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeRequest)];
+        DataProtocol::Header* header = (DataProtocol::Header*)message;
+        DataProtocol::TradeRequest* tradeRequest = (DataProtocol::TradeRequest*)(header + 1);
         header->size = sizeof(message);
         header->destination = 0;
         header->source = this->id;
-        header->messageType = Protocol::tradeRequest;
+        header->messageType = DataProtocol::tradeRequest;
         tradeRequest->sinceId = request->sinceId;
         tradeRequest->maxAge = request->maxAge;
         sinkClient->client.send(message, sizeof(message));
@@ -202,10 +202,10 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         channel->addListener(*this);
     }
     break;
-  case Protocol::unsubscribeRequest:
-    if(size >= sizeof(Protocol::UnsubscribeRequest))
+  case DataProtocol::unsubscribeRequest:
+    if(size >= sizeof(DataProtocol::UnsubscribeRequest))
     {
-      Protocol::UnsubscribeRequest* request = (Protocol::UnsubscribeRequest*)data;
+      DataProtocol::UnsubscribeRequest* request = (DataProtocol::UnsubscribeRequest*)data;
       request->channel[sizeof(request->channel) - 1] = '\0';
       String channelName(request->channel, String::length(request->channel));
       Channel* channel = serverHandler.findChannel(channelName);
@@ -213,7 +213,7 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       {
         String errorMessage;
         errorMessage.printf("Unknown channel %s", (const char_t*)channelName);
-        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
+        sendErrorResponse((DataProtocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
         return;
       }
       uint64_t channelId = channel->getId();
@@ -222,31 +222,31 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       {
         String errorMessage;
         errorMessage.printf("Not subscribed to %s", (const char_t*)channelName);
-        sendErrorResponse((Protocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
+        sendErrorResponse((DataProtocol::MessageType)messageHeader.messageType, messageHeader.source, 0, errorMessage);
         return;
       }
       subscriptions.remove(it);
       channel->removeListener(*this);
 
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::UnsubscribeResponse)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::UnsubscribeResponse* unsubscribeResponse = (Protocol::UnsubscribeResponse*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::UnsubscribeResponse)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::UnsubscribeResponse* unsubscribeResponse = (DataProtocol::UnsubscribeResponse*)(header + 1);
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::unsubscribeResponse;
+      header->messageType = DataProtocol::unsubscribeResponse;
       Memory::copy(unsubscribeResponse->channel, (const char_t*)channelName, channelName.length() + 1);
       unsubscribeResponse->channelId = channelId;
       client.send(message, sizeof(message));
     }
     break;
-  case Protocol::errorResponse:
-    if(size >= sizeof(Protocol::ErrorResponse))
+  case DataProtocol::errorResponse:
+    if(size >= sizeof(DataProtocol::ErrorResponse))
     {
-      Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)data;
+      DataProtocol::ErrorResponse* errorResponse = (DataProtocol::ErrorResponse*)data;
       switch(errorResponse->messageType)
       {
-      case Protocol::tradeRequest: // stop requesting trade history and start listening to new trades
+      case DataProtocol::tradeRequest: // stop requesting trade history and start listening to new trades
         {
           HashMap<uint64_t, Subscription>::Iterator it = subscriptions.find(errorResponse->channelId);
           if(it == subscriptions.end())
@@ -258,40 +258,40 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       }
     }
     break;
-  case Protocol::tradeResponse:
-    if(size >= sizeof(Protocol::TradeResponse))
+  case DataProtocol::tradeResponse:
+    if(size >= sizeof(DataProtocol::TradeResponse))
     {
-      Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)data;
-      size_t count = (size - sizeof(Protocol::TradeResponse)) / sizeof(Protocol::Trade);
+      DataProtocol::TradeResponse* tradeResponse = (DataProtocol::TradeResponse*)data;
+      size_t count = (size - sizeof(DataProtocol::TradeResponse)) / sizeof(DataProtocol::Trade);
       uint64_t channelId = tradeResponse->channelId;
       HashMap<uint64_t, Subscription>::Iterator it = subscriptions.find(channelId);
       if(it == subscriptions.end())
         return;
       Subscription& subscription = *it;
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeMessage)];
-      Protocol::Header* header = (Protocol::Header*)message;
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeMessage)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
       header->size = sizeof(message);
       header->destination = header->source = 0;
-      header->messageType = Protocol::tradeMessage;
+      header->messageType = DataProtocol::tradeMessage;
       uint64_t newestChannelTradeId = subscription.channel->getLastTradeId();
-      for(Protocol::Trade* trade = (Protocol::Trade*)(tradeResponse + 1), * tradeEnd = trade + count; trade < tradeEnd; ++trade)
+      for(DataProtocol::Trade* trade = (DataProtocol::Trade*)(tradeResponse + 1), * tradeEnd = trade + count; trade < tradeEnd; ++trade)
       {
-        Protocol::TradeMessage* treadeMessage = (Protocol::TradeMessage*)(header + 1);
+        DataProtocol::TradeMessage* treadeMessage = (DataProtocol::TradeMessage*)(header + 1);
         treadeMessage->channelId = channelId;
         treadeMessage->trade.id = trade->id;
         treadeMessage->trade.time = trade->time;
         treadeMessage->trade.price = trade->price;
         treadeMessage->trade.amount = trade->amount;
-        treadeMessage->trade.flags = trade->flags | Protocol::replayedFlag;
+        treadeMessage->trade.flags = trade->flags | DataProtocol::replayedFlag;
         if(trade->id == newestChannelTradeId)
-          treadeMessage->trade.flags |= Protocol::syncFlag;
+          treadeMessage->trade.flags |= DataProtocol::syncFlag;
         client.send(message, sizeof(message));
         subscription.lastReplayedTradeId = trade->id;
       }
       if(subscription.lastReplayedTradeId == newestChannelTradeId)
       {
         subscription.channel->addListener(*this);
-        const Protocol::TickerMessage& tickerMessage = subscription.channel->getLastTicker();
+        const DataProtocol::TickerMessage& tickerMessage = subscription.channel->getLastTicker();
         if(tickerMessage.ticker.time != 0 && tickerMessage.channelId == subscription.channel->getId())
           addedTicker(*subscription.channel, tickerMessage);
       }
@@ -299,31 +299,31 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
         pendingRequests.append(&subscription);
     }
     break;
-  case Protocol::tradeMessage:
-    if(size >= sizeof(Protocol::TradeMessage))
+  case DataProtocol::tradeMessage:
+    if(size >= sizeof(DataProtocol::TradeMessage))
     {
-      Protocol::TradeMessage* tradeMessage = (Protocol::TradeMessage*)data;
+      DataProtocol::TradeMessage* tradeMessage = (DataProtocol::TradeMessage*)data;
       if(channel && channel->getId() == tradeMessage->channelId)
         channel->addTrade(tradeMessage->trade);
     }
     break;
-  case Protocol::tickerMessage:
-    if(size >= sizeof(Protocol::TickerMessage))
+  case DataProtocol::tickerMessage:
+    if(size >= sizeof(DataProtocol::TickerMessage))
     {
-      Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)data;
+      DataProtocol::TickerMessage* tickerMessage = (DataProtocol::TickerMessage*)data;
       if(channel && channel->getId() == tickerMessage->channelId)
         channel->addTicker(*tickerMessage);
     }
     break;
-  case Protocol::channelRequest:
+  case DataProtocol::channelRequest:
     {
       const HashMap<String, Channel*>& channels = serverHandler.getChannels();
-      Protocol::Header header;
-      Protocol::Channel channelProt;
-      header.size = sizeof(header) + channels.size() * sizeof(Protocol::Channel);
+      DataProtocol::Header header;
+      DataProtocol::Channel channelProt;
+      header.size = sizeof(header) + channels.size() * sizeof(DataProtocol::Channel);
       header.destination = messageHeader.source;
       header.source = 0;
-      header.messageType = Protocol::channelResponse;
+      header.messageType = DataProtocol::channelResponse;
       client.send((byte_t*)&header, sizeof(header));
       for(HashMap<String, Channel*>::Iterator i = channels.begin(), end = channels.end(); i != end; ++i)
       {
@@ -333,23 +333,23 @@ void_t ClientHandler::handleMessage(const Protocol::Header& messageHeader, byte_
       }
     }
     break;
-  case Protocol::timeRequest:
+  case DataProtocol::timeRequest:
     {
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TimeResponse)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::TimeResponse* timeRespnse = (Protocol::TimeResponse*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TimeResponse)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::TimeResponse* timeRespnse = (DataProtocol::TimeResponse*)(header + 1);
       header->size = sizeof(message);
       header->destination = messageHeader.source;
       header->source = 0;
-      header->messageType = Protocol::timeResponse;
+      header->messageType = DataProtocol::timeResponse;
       timeRespnse->time = Time::time();
       client.send((byte_t*)message, sizeof(message));
     }
     break;
-  case Protocol::timeMessage:
-    if(size >= sizeof(Protocol::TimeMessage))
+  case DataProtocol::timeMessage:
+    if(size >= sizeof(DataProtocol::TimeMessage))
     {
-      Protocol::TimeMessage* timeMessage = (Protocol::TimeMessage*)data;
+      DataProtocol::TimeMessage* timeMessage = (DataProtocol::TimeMessage*)data;
       if(channel && channel->getId() == timeMessage->channelId)
         channel->setServerTime(timeMessage->time);
     }
@@ -368,26 +368,26 @@ void_t ClientHandler::write()
   ClientHandler* sinkClient = subscription->channel->getSinkClient();
   if(!sinkClient)
     return;
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeRequest)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TradeRequest* tradeRequest = (Protocol::TradeRequest*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeRequest)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::TradeRequest* tradeRequest = (DataProtocol::TradeRequest*)(header + 1);
   header->size = sizeof(message);
   header->destination = 0;
   header->source = id;
-  header->messageType = Protocol::tradeRequest;
+  header->messageType = DataProtocol::tradeRequest;
   tradeRequest->sinceId = subscription->lastReplayedTradeId;
   tradeRequest->maxAge = 0;
   sinkClient->client.send(message, sizeof(message));
 }
 
-void_t ClientHandler::addedTrade(Channel& channel, const Protocol::Trade& trade)
+void_t ClientHandler::addedTrade(Channel& channel, const DataProtocol::Trade& trade)
 {
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TradeMessage)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TradeMessage* tradeMessage = (Protocol::TradeMessage*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeMessage)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::TradeMessage* tradeMessage = (DataProtocol::TradeMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::tradeMessage;
+  header->messageType = DataProtocol::tradeMessage;
   tradeMessage->channelId = channel.getId();
   tradeMessage->trade.id = trade.id;
   tradeMessage->trade.time = channel.toLocalTime(trade.time);
@@ -397,28 +397,28 @@ void_t ClientHandler::addedTrade(Channel& channel, const Protocol::Trade& trade)
   client.send(message, sizeof(message));
 }
 
-void_t ClientHandler::addedTicker(Channel& channel, const Protocol::TickerMessage& tickerMessageSrc)
+void_t ClientHandler::addedTicker(Channel& channel, const DataProtocol::TickerMessage& tickerMessageSrc)
 {
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::TickerMessage)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::TickerMessage* tickerMessage = (Protocol::TickerMessage*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TickerMessage)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::TickerMessage* tickerMessage = (DataProtocol::TickerMessage*)(header + 1);
   header->size = sizeof(message);
   header->destination = header->source = 0;
-  header->messageType = Protocol::tickerMessage;
+  header->messageType = DataProtocol::tickerMessage;
   *tickerMessage = tickerMessageSrc;
   tickerMessage->channelId = channel.getId();
   client.send(message, sizeof(message));
 }
 
-void_t ClientHandler::sendErrorResponse(Protocol::MessageType messageType, uint64_t destination, uint64_t channelId, const String& errorMessage)
+void_t ClientHandler::sendErrorResponse(DataProtocol::MessageType messageType, uint64_t destination, uint64_t channelId, const String& errorMessage)
 {
-  byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::ErrorResponse)];
-  Protocol::Header* header = (Protocol::Header*)message;
-  Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)(header + 1);
+  byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::ErrorResponse)];
+  DataProtocol::Header* header = (DataProtocol::Header*)message;
+  DataProtocol::ErrorResponse* errorResponse = (DataProtocol::ErrorResponse*)(header + 1);
   header->size = sizeof(message);
   header->destination = destination;
   header->source = 0;
-  header->messageType = Protocol::errorResponse;
+  header->messageType = DataProtocol::errorResponse;
   errorResponse->messageType = messageType;
   errorResponse->channelId = channelId;
   Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, Math::min(errorMessage.length() + 1, sizeof(errorResponse->errorMessage) - 1));

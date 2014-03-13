@@ -28,12 +28,12 @@ uint_t SinkClient::main(void_t* param)
 
     // send register sink request
     {
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::RegisterSinkRequest)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::RegisterSinkRequest* registerSinkRequest = (Protocol::RegisterSinkRequest*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::RegisterSinkRequest)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::RegisterSinkRequest* registerSinkRequest = (DataProtocol::RegisterSinkRequest*)(header + 1);
       header->size = sizeof(message);
       header->destination = header->source = 0;
-      header->messageType = Protocol::registerSinkRequest;
+      header->messageType = DataProtocol::registerSinkRequest;
       Memory::copy(registerSinkRequest->channel, (const tchar_t*)sinkClient->channelName, sinkClient->channelName.length() + 1);
       if(!socket.send(message, sizeof(message)))
         break;
@@ -41,12 +41,12 @@ uint_t SinkClient::main(void_t* param)
 
     // send subscribe request
     {
-      byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::SubscribeRequest)];
-      Protocol::Header* header = (Protocol::Header*)message;
-      Protocol::SubscribeRequest* subscribeRequest = (Protocol::SubscribeRequest*)(header + 1);
+      byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::SubscribeRequest)];
+      DataProtocol::Header* header = (DataProtocol::Header*)message;
+      DataProtocol::SubscribeRequest* subscribeRequest = (DataProtocol::SubscribeRequest*)(header + 1);
       header->size = sizeof(message);
       header->destination = header->source = 0;
-      header->messageType = Protocol::subscribeRequest;
+      header->messageType = DataProtocol::subscribeRequest;
       Memory::copy(subscribeRequest->channel, (const tchar_t*)sinkClient->channelName, sinkClient->channelName.length() + 1);
       subscribeRequest->maxAge = 0;
       subscribeRequest->sinceId = 0;
@@ -56,12 +56,12 @@ uint_t SinkClient::main(void_t* param)
 
     // receive register sink response
     {
-      Protocol::Header header;
+      DataProtocol::Header header;
       if(!socket.recv((byte_t*)&header, sizeof(header)))
         break;
-      if(header.messageType != Protocol::registerSinkResponse)
+      if(header.messageType != DataProtocol::registerSinkResponse)
         break;
-      Protocol::RegisterSinkResponse response;
+      DataProtocol::RegisterSinkResponse response;
       if(!socket.recv((byte_t*)&response, sizeof(response)))
         break;
       sinkClient->channelId = response.channelId;
@@ -69,12 +69,12 @@ uint_t SinkClient::main(void_t* param)
 
     // receive subscribe response
     {
-      Protocol::Header header;
+      DataProtocol::Header header;
       if(!socket.recv((byte_t*)&header, sizeof(header)))
         break;
-      if(header.messageType != Protocol::subscribeResponse)
+      if(header.messageType != DataProtocol::subscribeResponse)
         break;
-      Protocol::SubscribeResponse response;
+      DataProtocol::SubscribeResponse response;
       if(!socket.recv((byte_t*)&response, sizeof(response)))
         break;
       if(sinkClient->channelId != response.channelId)
@@ -82,7 +82,7 @@ uint_t SinkClient::main(void_t* param)
     }
 
     // message loop
-    Protocol::Header header;
+    DataProtocol::Header header;
     byte_t messageData[100];
     for(;;)
     {
@@ -141,13 +141,13 @@ void_t SinkClient::loadTradesFromFile(const String& fileName)
     Console::errorf("error: Could not open file %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
     return;
   }
-  byte_t buffer[sizeof(Protocol::Trade) * 1000];
+  byte_t buffer[sizeof(DataProtocol::Trade) * 1000];
   ssize_t bytes;
   while((bytes = file.read(buffer, sizeof(buffer))) > 0)
   {
-    for(Protocol::Trade* trade = (Protocol::Trade*)buffer, * end = trade + bytes / sizeof(Protocol::Trade); trade < end; ++trade)
+    for(DataProtocol::Trade* trade = (DataProtocol::Trade*)buffer, * end = trade + bytes / sizeof(DataProtocol::Trade); trade < end; ++trade)
       addTrade(*trade);
-    if(bytes % sizeof(Protocol::Trade))
+    if(bytes % sizeof(DataProtocol::Trade))
     {
       Console::errorf("error: Data from file %s is incomplete: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
       return;
@@ -157,14 +157,14 @@ void_t SinkClient::loadTradesFromFile(const String& fileName)
     Console::errorf("error: Could not read data from %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
 }
 
-bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& messageHeader, byte_t* data, size_t size)
+bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& messageHeader, byte_t* data, size_t size)
 {
   switch(messageHeader.messageType)
   {
-  case Protocol::tradeRequest:
-    if(size >= sizeof(Protocol::TradeRequest))
+  case DataProtocol::tradeRequest:
+    if(size >= sizeof(DataProtocol::TradeRequest))
     {
-      Protocol::TradeRequest* tradeRequest = (Protocol::TradeRequest*)data;
+      DataProtocol::TradeRequest* tradeRequest = (DataProtocol::TradeRequest*)data;
       if(!trades.isEmpty() && !keyTrades.isEmpty())
       {
         if(tradeRequest->maxAge != 0 && tradeRequest->sinceId == 0)
@@ -198,13 +198,13 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
         HashMap<uint64_t, Trade>::Iterator itTradeEnd = trades.end();
         if(itTrade == itTradeEnd)
         {
-          byte_t message[sizeof(Protocol::Header) + sizeof(Protocol::ErrorResponse)];
-          Protocol::Header* header = (Protocol::Header*)message;
-          Protocol::ErrorResponse* errorResponse = (Protocol::ErrorResponse*)(header + 1);
+          byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::ErrorResponse)];
+          DataProtocol::Header* header = (DataProtocol::Header*)message;
+          DataProtocol::ErrorResponse* errorResponse = (DataProtocol::ErrorResponse*)(header + 1);
           header->size = sizeof(message);
           header->destination = messageHeader.source;
           header->source = 0;
-          header->messageType = Protocol::errorResponse;
+          header->messageType = DataProtocol::errorResponse;
           errorResponse->messageType = messageHeader.messageType;
           errorResponse->channelId = channelId;
           String errorMessage("Unknown trade id.");
@@ -218,13 +218,13 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
             ++itTrade;
 
           byte_t message[4000];
-          Protocol::Header* header = (Protocol::Header*)message;
+          DataProtocol::Header* header = (DataProtocol::Header*)message;
           header->destination = messageHeader.source;
           header->source = 0;
-          header->messageType = Protocol::tradeResponse;
-          Protocol::TradeResponse* tradeResponse = (Protocol::TradeResponse*)(header + 1);
+          header->messageType = DataProtocol::tradeResponse;
+          DataProtocol::TradeResponse* tradeResponse = (DataProtocol::TradeResponse*)(header + 1);
           tradeResponse->channelId = channelId;
-          Protocol::Trade* tradeMsg = (Protocol::Trade*)(tradeResponse + 1);
+          DataProtocol::Trade* tradeMsg = (DataProtocol::Trade*)(tradeResponse + 1);
           for(; itTrade != itTradeEnd; ++itTrade)
           {
             Trade& trade = *itTrade;
@@ -244,9 +244,9 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
       }
     }
     break;
-  case Protocol::tradeMessage:
-    if(size >= sizeof(Protocol::TradeMessage))
-      return handleTradeMessage(*(Protocol::TradeMessage*)data);
+  case DataProtocol::tradeMessage:
+    if(size >= sizeof(DataProtocol::TradeMessage))
+      return handleTradeMessage(*(DataProtocol::TradeMessage*)data);
     break;
   default:
     break;
@@ -254,12 +254,12 @@ bool_t SinkClient::handleMessage(Socket& socket, const Protocol::Header& message
   return true;
 }
 
-bool_t SinkClient::handleTradeMessage(Protocol::TradeMessage& tradeMessage)
+bool_t SinkClient::handleTradeMessage(DataProtocol::TradeMessage& tradeMessage)
 {
   if(tradeMessage.channelId != channelId)
     return true;
 
-  const Protocol::Trade& trade = tradeMessage.trade;
+  const DataProtocol::Trade& trade = tradeMessage.trade;
   addTrade(tradeMessage.trade);
 
   // save trade data in file
@@ -274,14 +274,14 @@ bool_t SinkClient::handleTradeMessage(Protocol::TradeMessage& tradeMessage)
   }
   if(file.isOpen())
   {
-    if(file.write(&tradeMessage.trade, sizeof(Protocol::Trade)) != sizeof(Protocol::Trade))
+    if(file.write(&tradeMessage.trade, sizeof(DataProtocol::Trade)) != sizeof(DataProtocol::Trade))
       Console::errorf("error: Could not write data to %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
   }
 
   return true;
 }
 
-void_t SinkClient::addTrade(const Protocol::Trade& trade)
+void_t SinkClient::addTrade(const DataProtocol::Trade& trade)
 {
  if(trade.id <= lastTradeId)
     return;

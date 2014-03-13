@@ -3,7 +3,7 @@
 
 #include <nstd/Base.h>
 
-class Protocol
+class DataProtocol
 {
 public:
   enum MessageType

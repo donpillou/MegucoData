@@ -47,7 +47,7 @@ targets = {
       "Src/Markets/$(target).h"
       "Src/Tools/Socket.cpp" = cppSource
       "Src/Tools/Socket.h"
-      "Src/Protocol.h"
+      "Src/DataProtocol.h"
       "Src/Markets/Tools/**.cpp" = cppSource
       "Src/Markets/Tools/**.h"
       "Src/Markets/Main.cpp" = cppSource

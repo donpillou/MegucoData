@@ -6,7 +6,7 @@
 #include <nstd/HashMap.h>
 #include <nstd/File.h>
 
-#include "Protocol.h"
+#include "DataProtocol.h"
 
 class SinkClient
 {
@@ -40,11 +40,11 @@ private:
 
   static uint_t main(void_t* param);
 
-  bool_t handleMessage(Socket& socket, const Protocol::Header& messageHeader, byte_t* data, size_t size);
-  bool_t handleTradeMessage(Protocol::TradeMessage& tradeMessage);
+  bool_t handleMessage(Socket& socket, const DataProtocol::Header& messageHeader, byte_t* data, size_t size);
+  bool_t handleTradeMessage(DataProtocol::TradeMessage& tradeMessage);
 
   void_t loadTradesFromFile();
   void_t loadTradesFromFile(const String& file);
 
-  void_t addTrade(const Protocol::Trade& trade);
+  void_t addTrade(const DataProtocol::Trade& trade);
 };

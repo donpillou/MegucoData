@@ -4,7 +4,7 @@
 #include <nstd/String.h>
 #include "Tools/Socket.h"
 #include "Tools/Market.h"
-#include "Protocol.h"
+#include "DataProtocol.h"
 
 class RelayConnection
 {
