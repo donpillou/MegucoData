@@ -5,9 +5,10 @@ markets -= "Main"
 
 targets = {
 
-  traded = cppApplication + {
+  MegucoData = cppApplication + {
     dependencies = { "libnstd" } + markets
     buildDir = "Build/$(configuration)/$(target)"
+    output = "Build/$(configuration)/datad$(if $(Win32),.exe,)"
     includePaths = { "Ext/libnstd/include" }
     libPaths = { "Build/$(configuration)/libnstd" }
     libs = { "nstd" }
@@ -31,7 +32,8 @@ targets = {
     folder = "Markets"
     dependencies = { "libnstd" }
     defines += { "MARKET_$(upper $(target))" }
-    buildDir = "Build/$(configuration)/$(target)"
+    buildDir = "Build/$(configuration)/Markets/$(target)"
+    output = "Build/$(configuration)/$(target)$(if $(Win32),.exe,)"
     includePaths = {
       "Ext/libnstd/include"
       "Src",
