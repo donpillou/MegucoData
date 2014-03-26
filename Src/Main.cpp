@@ -35,7 +35,7 @@ int_t main(int_t argc, char_t* argv[])
     {
       Console::errorf("Usage: %s [-b] [-c <dir>]\n\
   -f            run in foreground (not as daemon)\n\
-  -c <dir>      set data directory (default is .)\n", argv[0]);
+  -c <dir>      set data directory (default is ./Data)\n", argv[0]);
       return -1;
     }
 
