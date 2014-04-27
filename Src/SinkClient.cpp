@@ -35,7 +35,7 @@ uint_t SinkClient::main(void_t* param)
       header->destination = header->source = 0;
       header->messageType = DataProtocol::registerSinkRequest;
       Memory::copy(registerSinkRequest->channel, (const tchar_t*)sinkClient->channelName, sinkClient->channelName.length() + 1);
-      if(!socket.send(message, sizeof(message)))
+      if(socket.send2(message, sizeof(message)) != sizeof(message))
         break;
     }
 
@@ -50,19 +50,19 @@ uint_t SinkClient::main(void_t* param)
       Memory::copy(subscribeRequest->channel, (const tchar_t*)sinkClient->channelName, sinkClient->channelName.length() + 1);
       subscribeRequest->maxAge = 0;
       subscribeRequest->sinceId = 0;
-      if(!socket.send(message, sizeof(message)))
+      if(socket.send2(message, sizeof(message)) != sizeof(message))
         break;
     }
 
     // receive register sink response
     {
       DataProtocol::Header header;
-      if(!socket.recv((byte_t*)&header, sizeof(header)))
+      if(socket.recv2((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
         break;
       if(header.messageType != DataProtocol::registerSinkResponse)
         break;
       DataProtocol::RegisterSinkResponse response;
-      if(!socket.recv((byte_t*)&response, sizeof(response)))
+      if(socket.recv2((byte_t*)&response, sizeof(response), sizeof(response)) != sizeof(response))
         break;
       sinkClient->channelId = response.channelId;
     }
@@ -70,12 +70,12 @@ uint_t SinkClient::main(void_t* param)
     // receive subscribe response
     {
       DataProtocol::Header header;
-      if(!socket.recv((byte_t*)&header, sizeof(header)))
+      if(socket.recv2((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
         break;
       if(header.messageType != DataProtocol::subscribeResponse)
         break;
       DataProtocol::SubscribeResponse response;
-      if(!socket.recv((byte_t*)&response, sizeof(response)))
+      if(socket.recv2((byte_t*)&response, sizeof(response), sizeof(response)) != sizeof(response))
         break;
       if(sinkClient->channelId != response.channelId)
         break;
@@ -86,12 +86,12 @@ uint_t SinkClient::main(void_t* param)
     byte_t messageData[100];
     for(;;)
     {
-      if(!socket.recv((byte_t*)&header, sizeof(header)))
+      if(socket.recv2((byte_t*)&header, sizeof(header),sizeof(header)) != sizeof(header))
         break;
       size_t messageDataSize = header.size - sizeof(header);
       if(messageDataSize > sizeof(messageData))
         break;
-      if(!socket.recv(messageData, messageDataSize))
+      if(socket.recv2(messageData, messageDataSize, messageDataSize) != messageDataSize)
         break;
       if(!sinkClient->handleMessage(socket, header, messageData, messageDataSize))
         break;
@@ -209,7 +209,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
           errorResponse->channelId = channelId;
           String errorMessage("Unknown trade id.");
           Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, errorMessage.length() + 1);
-          if(!socket.send(message, sizeof(message)))
+          if(socket.send2(message, sizeof(message)) != sizeof(message))
             break;
         }
         else
@@ -238,7 +238,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
               break;
           }
           header->size = (byte_t*)tradeMsg - message;
-          if(!socket.send(message, header->size))
+          if(socket.send2(message, header->size) != header->size)
             return false;
         }
       }

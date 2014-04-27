@@ -26,6 +26,7 @@ public:
   public:
     void_t setListener(Listener* listener) {this->listener = listener;}
     Listener* getListener() const {return listener;}
+    void_t reserve(size_t capacity) {socket.reserve(capacity);}
     bool_t send(const byte_t* data, size_t size) {return socket.send(data, size);}
     void_t close() {server.close(socket);}
 
@@ -122,29 +123,16 @@ private:
   public:
     ClientSocket(Server& server) : server(server), client(server, *this) {}
 
+    void_t reserve(size_t capacity)
+    {
+      sendBuffer.reserve(sendBuffer.size() + capacity);
+    }
+
     bool_t send(const byte_t* data, size_t size)
     {
       if(sendBuffer.isEmpty())
         server.selector.set(*this, Socket::Selector::readEvent | Socket::Selector::writeEvent);
       sendBuffer.append(data, size);
-
-      //if(!sendBuffer.isEmpty())
-      //{
-      //  sendBuffer.append(data, size);
-      //  return true;
-      //}
-      //size_t sent;
-      //if(!Socket::send(data, size, sent))
-      //{
-      //  server.close(*this);
-      //  return false;
-      //}
-      //if(sent < size)
-      //{
-      //  sendBuffer.append(data + sent, size - sent);
-      //  server.selector.set(*this, Socket::Selector::readEvent | Socket::Selector::writeEvent);
-      //}
-
       return true;
     }
 
@@ -152,9 +140,14 @@ private:
     {
       size_t bufferSize = recvBuffer.size();
       recvBuffer.resize(bufferSize + 1500);
-      size_t received;
-      if(!recv(recvBuffer + bufferSize, 1500, received))
+      ssize_t received = Socket::recv2(recvBuffer + bufferSize, 1500);
+      switch(received)
       {
+      case -1:
+        if(getLastError() == 0) // EWOULDBLOCK
+          return;
+        // no break
+      case 0:
         server.close(*this);
         return;
       }
@@ -168,9 +161,14 @@ private:
     {
       if(sendBuffer.isEmpty())
         return;
-      size_t sent;
-      if(!Socket::send(sendBuffer, sendBuffer.size(), sent))
+      ssize_t sent = Socket::send2(sendBuffer, sendBuffer.size());
+      switch(sent)
       {
+      case -1:
+        if(getLastError() == 0) // EWOULDBLOCK
+          return;
+        // no break
+      case 0:
         server.close(*this);
         return;
       }
