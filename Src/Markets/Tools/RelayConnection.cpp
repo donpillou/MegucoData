@@ -24,7 +24,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
     header->destination = header->source = 0;
     header->messageType = DataProtocol::registerSourceRequest;
     Memory::copy(registerSourceRequest->channel, channelName, channelName.length() + 1);
-    if(socket.send2(message, sizeof(message)) != sizeof(message))
+    if(socket.send(message, sizeof(message)) != sizeof(message))
     {
       error = Socket::getLastErrorString();
       socket.close();
@@ -36,7 +36,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
   {
     DataProtocol::Header header;
     DataProtocol::RegisterSinkResponse response;
-    if(socket.recv2((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
+    if(socket.recv((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
     {
       error = Socket::getLastErrorString();
       socket.close();
@@ -48,7 +48,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
       socket.close();
       return false;
     }
-    if(socket.recv2((byte_t*)&response, sizeof(response), sizeof(response)) != sizeof(response))
+    if(socket.recv((byte_t*)&response, sizeof(response), sizeof(response)) != sizeof(response))
     {
       error = Socket::getLastErrorString();
       socket.close();
@@ -60,7 +60,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
   // receive registered sink message
   { // waiting for this message ensures that the sink client is ready to save the data we provide
     DataProtocol::Header header;
-    if(socket.recv2((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
+    if(socket.recv((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
     {
       error = Socket::getLastErrorString();
       socket.close();
@@ -90,7 +90,7 @@ bool_t RelayConnection::sendTrade(const Market::Trade& trade)
   tradeMessage->trade.price = trade.price;
   tradeMessage->trade.amount = trade.amount;
   tradeMessage->trade.flags = trade.flags;
-  if(socket.send2(message, sizeof(message)) != sizeof(message))
+  if(socket.send(message, sizeof(message)) != sizeof(message))
   {
     error = Socket::getLastErrorString();
     socket.close();
@@ -108,7 +108,7 @@ bool_t RelayConnection::sendServerTime(uint64_t time)
   header->destination = header->source = 0;
   header->messageType = DataProtocol::timeMessage;
   timeMessage->time = time;
-  if(socket.send2(message, sizeof(message)) != sizeof(message))
+  if(socket.send(message, sizeof(message)) != sizeof(message))
   {
     error = Socket::getLastErrorString();
     socket.close();
@@ -129,7 +129,7 @@ bool_t RelayConnection::sendTicker(const Market::Ticker& ticker)
   tickerMessage->ticker.time = ticker.time;
   tickerMessage->ticker.ask = ticker.ask;
   tickerMessage->ticker.bid = ticker.bid;
-  if(socket.send2(message, sizeof(message)) != sizeof(message))
+  if(socket.send(message, sizeof(message)) != sizeof(message))
   {
     error = Socket::getLastErrorString();
     socket.close();

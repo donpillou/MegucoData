@@ -190,7 +190,7 @@ int_t Socket::getAndResetErrorStatus()
   return optVal;
 }
 
-ssize_t Socket::send2(const byte_t* data, size_t size)
+ssize_t Socket::send(const byte_t* data, size_t size)
 {
   int r = ::send((SOCKET)s, (const char*)data, size, MSG_NOSIGNAL);
   if(r == SOCKET_ERROR)
@@ -212,7 +212,7 @@ ssize_t Socket::send2(const byte_t* data, size_t size)
   return r;
 }
 
-ssize_t Socket::recv2(byte_t* data, size_t maxSize, size_t minSize)
+ssize_t Socket::recv(byte_t* data, size_t maxSize, size_t minSize)
 {
   int r = ::recv((SOCKET)s, (char*)data, maxSize, 0);
   switch(r)
@@ -234,7 +234,7 @@ ssize_t Socket::recv2(byte_t* data, size_t maxSize, size_t minSize)
   case 0:
     return 0;
   }
-  if(r >= minSize)
+  if((size_t)r >= minSize)
     return r;
   size_t received = r;
   for(;;)
@@ -265,74 +265,6 @@ ssize_t Socket::recv2(byte_t* data, size_t maxSize, size_t minSize)
       return received;
   }
 }
-
-//bool_t Socket::send(const byte_t* data, size_t size, size_t& sent)
-//{
-//  int r = ::send((SOCKET)s, (const char*)data, size, MSG_NOSIGNAL);
-//  if(r == SOCKET_ERROR)
-//  {
-//    if(ERRNO == EWOULDBLOCK 
-//#ifndef _WIN32
-//      || ERRNO == EAGAIN
-//#endif
-//      )
-//    {
-//      sent = 0;
-//      return true;
-//    }
-//    return false;
-//  }
-//  sent = r;
-//  return true;
-//}
-//
-//bool_t Socket::recv(byte_t* data, size_t maxSize, size_t& received)
-//{
-//  int r = ::recv((SOCKET)s, (char*)data, maxSize, 0);
-//  switch(r)
-//  {
-//  case SOCKET_ERROR:
-//    if(ERRNO == EWOULDBLOCK 
-//#ifndef _WIN32
-//      || ERRNO == EAGAIN
-//#endif
-//      )
-//    {
-//      received = 0;
-//      return true;
-//    }
-//    return false;
-//  case 0:
-//    received = 0;
-//    return false;
-//  }
-//  received = r;
-//  return true;
-//}
-//
-//bool_t Socket::send(const byte_t* data, size_t size)
-//{
-//  size_t sent, totalSent = 0;
-//  while(totalSent < size)
-//  {
-//    if(!send(data, size, sent))
-//      return false;
-//    totalSent += sent;
-//  }
-//  return true;
-//}
-//
-//bool_t Socket::recv(byte_t* data, size_t size)
-//{
-//  size_t received, totalReceived = 0;
-//  while(totalReceived < size)
-//  {
-//    if(!recv(data, size, received))
-//      return false;
-//    totalReceived += received;
-//  }
-//  return true;
-//}
 
 int_t Socket::getLastError()
 {

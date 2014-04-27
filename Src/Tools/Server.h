@@ -140,7 +140,7 @@ private:
     {
       size_t bufferSize = recvBuffer.size();
       recvBuffer.resize(bufferSize + 1500);
-      ssize_t received = Socket::recv2(recvBuffer + bufferSize, 1500);
+      ssize_t received = Socket::recv(recvBuffer + bufferSize, 1500);
       switch(received)
       {
       case -1:
@@ -161,7 +161,7 @@ private:
     {
       if(sendBuffer.isEmpty())
         return;
-      ssize_t sent = Socket::send2(sendBuffer, sendBuffer.size());
+      ssize_t sent = Socket::send(sendBuffer, sendBuffer.size());
       switch(sent)
       {
       case -1:
