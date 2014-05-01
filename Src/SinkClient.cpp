@@ -91,7 +91,7 @@ uint_t SinkClient::main(void_t* param)
       size_t messageDataSize = header.size - sizeof(header);
       if(messageDataSize > sizeof(messageData))
         break;
-      if(socket.recv(messageData, messageDataSize, messageDataSize) != messageDataSize)
+      if(socket.recv(messageData, messageDataSize, messageDataSize) != (ssize_t)messageDataSize)
         break;
       if(!sinkClient->handleMessage(socket, header, messageData, messageDataSize))
         break;
@@ -238,7 +238,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
               break;
           }
           header->size = (byte_t*)tradeMsg - message;
-          if(socket.send(message, header->size) != header->size)
+          if(socket.send(message, header->size) != (ssize_t)header->size)
             return false;
         }
       }
