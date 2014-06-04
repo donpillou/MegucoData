@@ -60,7 +60,7 @@ bool_t HttpRequest::get(const String& url, Buffer& data, bool checkCertificate)
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &writeResult);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 40);
   if(!checkCertificate)
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 0);
 
   data.clear();
   data.reserve(1500);
