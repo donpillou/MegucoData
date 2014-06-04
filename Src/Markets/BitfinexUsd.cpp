@@ -28,7 +28,7 @@ bool_t BitfinexUsd::process(Callback& callback)
     String url("https://api.bitfinex.com/v1/trades/btcusd");
     if(lastTimestamp != 0)
       url.printf("https://api.bitfinex.com/v1/trades/btcusd?timestamp=%llu", lastTimestamp);
-    if(!httpRequest.get(url, data))
+    if(!httpRequest.get(url, data, false))
     {
       error = httpRequest.getErrorString();
       open = false;

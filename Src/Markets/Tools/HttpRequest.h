@@ -14,7 +14,7 @@ public:
 
   const String& getErrorString() {return error;}
 
-  bool_t get(const String& url, Buffer& data);
+  bool_t get(const String& url, Buffer& data, bool checkCertificate = true);
   bool_t post(const String& url, const HashMap<String, String>& formData, Buffer& data);
 
 private:

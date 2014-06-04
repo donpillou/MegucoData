@@ -25,7 +25,7 @@ HttpRequest::~HttpRequest()
     curl_easy_cleanup(curl);
 }
 
-bool_t HttpRequest::get(const String& url, Buffer& data)
+bool_t HttpRequest::get(const String& url, Buffer& data, bool checkCertificate)
 {
   if(!curl)
   {
@@ -59,6 +59,8 @@ bool_t HttpRequest::get(const String& url, Buffer& data)
   curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteResult::writeResponse);
   curl_easy_setopt(curl, CURLOPT_WRITEDATA, &writeResult);
   curl_easy_setopt(curl, CURLOPT_TIMEOUT, 40);
+  if(!checkCertificate)
+    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, FALSE);
 
   data.clear();
   data.reserve(1500);
