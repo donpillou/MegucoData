@@ -26,7 +26,7 @@ bool_t HuobiCny::process(Callback& callback)
   for(;; Thread::sleep(2000))
   {
     
-    if(!httpRequest.get("https://detail.huobi.com/staticmarket/detail.html", data))
+    if(!httpRequest.get("http://market.huobi.com/staticmarket/detail_btc_json.js", data))
     {
       error = httpRequest.getErrorString();
       open = false;
@@ -34,13 +34,13 @@ bool_t HuobiCny::process(Callback& callback)
     }
 
     dataStr.attach((const char_t*)(byte_t*)data, data.size());
-    if(dataStr.length() < 13 || !dataStr.startsWith("view_detail("))
-    {
-      error = "Could not parse trade data.";
-      open = false;
-      return false;
-    }
-    dataStr = dataStr.substr(12, dataStr.length() - 12 - 1);
+    //if(dataStr.length() < 13 || !dataStr.startsWith("view_detail("))
+    //{
+    //  error = "Could not parse trade data.";
+    //  open = false;
+    //  return false;
+    //}
+    //dataStr = dataStr.substr(12, dataStr.length() - 12 - 1);
 
     Variant dataVar;
     if(!Json::parse(dataStr, dataVar))
