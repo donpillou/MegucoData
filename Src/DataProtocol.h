@@ -72,6 +72,7 @@ public:
   {
     char_t channel[33];
     uint64_t channelId;
+    uint32_t flags;
   };
   struct UnsubscribeRequest
   {

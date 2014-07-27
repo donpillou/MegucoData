@@ -182,10 +182,10 @@ void_t ClientHandler::handleMessage(const DataProtocol::Header& messageHeader, b
       header->messageType = DataProtocol::subscribeResponse;
       Memory::copy(subscribeResponse->channel, (const char_t*)channelName, channelName.length() + 1);
       subscribeResponse->channelId = channelId;
-      client.send(message, sizeof(message));
+      subscribeResponse->flags = 0;
 
       ClientHandler* sinkClient = channel->getSinkClient();
-      if((request->maxAge != 0 || request->sinceId != 0) && sinkClient)
+      if((request->maxAge != 0 || (request->sinceId != 0 && request->sinceId != channel->getLastTradeId())) && sinkClient)
       {
         byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeRequest)];
         DataProtocol::Header* header = (DataProtocol::Header*)message;
@@ -199,7 +199,12 @@ void_t ClientHandler::handleMessage(const DataProtocol::Header& messageHeader, b
         sinkClient->client.send(message, sizeof(message));
       }
       else
+      {
         channel->addListener(*this);
+        subscribeResponse->flags |= DataProtocol::syncFlag;
+      }
+
+      client.send(message, sizeof(message));
     }
     break;
   case DataProtocol::unsubscribeRequest:
