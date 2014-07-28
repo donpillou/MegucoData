@@ -45,6 +45,11 @@ const char* exchangeName = "BitfinexUsd";
 typedef BtceUsd MarketConnection;
 const char* exchangeName = "BtceUsd";
 #endif
+#ifdef MARKET_KRAKENBTCUSD
+#include "Markets/KrakenBtcUsd.h"
+typedef KrakenBtcUsd MarketConnection;
+const char* exchangeName = "KrakenBtcUsd";
+#endif
 
 int_t main(int_t argc, char_t* argv[])
 {
