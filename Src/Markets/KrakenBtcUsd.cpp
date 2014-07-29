@@ -106,7 +106,6 @@ bool_t KrakenBtcUsd::process(Callback& callback)
       ++it;
       trade.id = (uint64_t)(it->toDouble() * 10000.);
       trade.time = trade.id / 10;
-      timestamp_t time = Time::time();
       trade.flags = 0;
 
       if(trade.id > lastTradeId)
