@@ -48,11 +48,11 @@ bool_t BitstampUsd::connect()
     }
     const HashMap<String, Variant>& dataMap = dataVar.toMap();
     timestamp_t serverTime = dataMap.find("timestamp")->toInt64() * 1000LL;  // + up to 8 seconds
-    if(i == 0 || serverTime - localTime < localToServerTime)
+    if(i == 0 || serverTime - localTime > localToServerTime)
       localToServerTime = serverTime - localTime;
-    if(i == 2)
+    if(i == 12)
       break;
-    Thread::sleep(2000);
+    Thread::sleep(2137);
   }
 
   return true;
