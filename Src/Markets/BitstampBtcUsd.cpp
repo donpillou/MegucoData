@@ -6,9 +6,9 @@
 
 #include "Tools/Json.h"
 #include "Tools/HttpRequest.h"
-#include "BitstampUsd.h"
+#include "BitstampBtcUsd.h"
 
-bool_t BitstampUsd::connect()
+bool_t BitstampBtcUsd::connect()
 {
   close();
 
@@ -58,7 +58,7 @@ bool_t BitstampUsd::connect()
   return true;
 }
 
-bool_t BitstampUsd::process(Callback& callback)
+bool_t BitstampBtcUsd::process(Callback& callback)
 {
   if(!callback.receivedTime(toServerTime(Time::time())))
     return false;
@@ -154,7 +154,7 @@ bool_t BitstampUsd::process(Callback& callback)
   return false; // unreachable
 }
 
-bool_t BitstampUsd::handleStreamData(const Buffer& data, Callback& callback)
+bool_t BitstampBtcUsd::handleStreamData(const Buffer& data, Callback& callback)
 {
   timestamp_t localTime = Time::time();
   //Console::printf("%s\n", (const byte_t*)data);

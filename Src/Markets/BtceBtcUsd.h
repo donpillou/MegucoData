@@ -5,12 +5,12 @@
 
 #include "Tools/Market.h"
 
-class BtceUsd : public Market
+class BtceBtcUsd : public Market
 {
 public:
-  BtceUsd() : open(false), lastTradeId(0), lastTimestamp(0) {}
+  BtceBtcUsd() : open(false), lastTradeId(0), lastTimestamp(0) {}
 
-  virtual String getChannelName() const {return String("Btce/USD");}
+  virtual String getChannelName() const {return String("Btce BTC/USD");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}

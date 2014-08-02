@@ -11,12 +11,13 @@
 class SinkClient
 {
 public:
-  SinkClient(const String& channelName, uint16_t serverPort) : channelName(channelName), serverPort(serverPort), channelId(0), lastTradeId(0) {}
+  SinkClient(const String& channelName, uint16_t serverPort);
 
   bool_t start() {return thread.start(main, this);}
 
 private:
   String channelName;
+  String dirName;
   uint16_t serverPort;
   Thread thread;
 

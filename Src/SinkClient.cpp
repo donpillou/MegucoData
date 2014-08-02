@@ -10,6 +10,11 @@
 #include "Tools/Math.h"
 #include "SinkClient.h"
 
+SinkClient::SinkClient(const String& channelName, uint16_t serverPort) : channelName(channelName), dirName(channelName), serverPort(serverPort), channelId(0), lastTradeId(0)
+{
+  dirName.replace(' ', '/');
+}
+
 uint_t SinkClient::main(void_t* param)
 {
   SinkClient* sinkClient = (SinkClient*)param;
@@ -104,17 +109,17 @@ uint_t SinkClient::main(void_t* param)
 void_t SinkClient::loadTradesFromFile()
 {
   Directory dir;
-  if(!Directory::exists(channelName))
+  if(!Directory::exists(dirName))
   {
-    if(!Directory::create(channelName))
+    if(!Directory::create(dirName))
     {
-      Console::errorf("error: Could not create directory %s: %s\n", (const tchar_t*)channelName, (const tchar_t*)Error::getErrorString());
+      Console::errorf("error: Could not create directory %s: %s\n", (const tchar_t*)dirName, (const tchar_t*)Error::getErrorString());
       return;
     }
   }
-  if(!dir.open(channelName, "trades-*.dat", false))
+  if(!dir.open(dirName, "trades-*.dat", false))
   {
-    Console::errorf("error: Could not open directory %s: %s\n", (const tchar_t*)channelName, (const tchar_t*)Error::getErrorString());
+    Console::errorf("error: Could not open directory %s: %s\n", (const tchar_t*)dirName, (const tchar_t*)Error::getErrorString());
     return;
   }
   String path;
@@ -130,7 +135,7 @@ void_t SinkClient::loadTradesFromFile()
   while(files.size() > 7)
     files.removeFront();
   for(List<String>::Iterator i = files.begin(), end = files.end(); i != end; ++i)
-    loadTradesFromFile(channelName + "/" + *i);
+    loadTradesFromFile(dirName + "/" + *i);
 }
 
 void_t SinkClient::loadTradesFromFile(const String& fileName)
@@ -268,7 +273,7 @@ bool_t SinkClient::handleTradeMessage(DataProtocol::TradeMessage& tradeMessage)
   {
     file.close();
     fileDate = currentfileDate;
-    fileName = channelName + "/trades-" + fileDate + ".dat";
+    fileName = dirName + "/trades-" + fileDate + ".dat";
     if(!file.open(fileName, File::writeFlag | File::appendFlag))
       Console::errorf("error: Could not open file %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
   }

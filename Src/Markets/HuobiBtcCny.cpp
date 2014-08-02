@@ -7,15 +7,15 @@
 #include "Tools/Json.h"
 #include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
-#include "HuobiCny.h"
+#include "HuobiBtcCny.h"
 
-bool_t HuobiCny::connect()
+bool_t HuobiBtcCny::connect()
 {
   open = true;
   return true;
 }
 
-bool_t HuobiCny::process(Callback& callback)
+bool_t HuobiBtcCny::process(Callback& callback)
 {
   if(!callback.receivedTime(Time::time()))
     return false;

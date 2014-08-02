@@ -5,12 +5,12 @@
 
 #include "Tools/Market.h"
 
-class HuobiCny : public Market
+class BitfinexBtcUsd : public Market
 {
 public:
-  HuobiCny() : open(false), lastTradeId(0) {}
+  BitfinexBtcUsd() : open(false), lastTradeId(0), lastTimestamp(0) {}
 
-  virtual String getChannelName() const {return String("Huobi/CNY");}
+  virtual String getChannelName() const {return String("Bitfinex BTC/USD");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}
@@ -21,6 +21,7 @@ private:
   String error;
   bool_t open;
 
-  List<String> lastTradeList;
   uint64_t lastTradeId;
+  int64_t lastTimestamp;
+
 };

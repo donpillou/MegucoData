@@ -6,9 +6,9 @@
 
 #include "Tools/Json.h"
 #include "Tools/HttpRequest.h"
-#include "MtGoxUsd.h"
+#include "MtGoxBtcUsd.h"
 
-bool_t MtGoxUsd::connect()
+bool_t MtGoxBtcUsd::connect()
 {
   close();
 
@@ -60,7 +60,7 @@ bool_t MtGoxUsd::connect()
   return true;
 }
 
-bool_t MtGoxUsd::process(Callback& callback)
+bool_t MtGoxBtcUsd::process(Callback& callback)
 {
   if(!callback.receivedTime(toServerTime(Time::time())))
     return false;
@@ -134,7 +134,7 @@ bool_t MtGoxUsd::process(Callback& callback)
   return false; // unreachable
 }
 
-bool_t MtGoxUsd::sendPing()
+bool_t MtGoxBtcUsd::sendPing()
 {
   // mtgox websocket server does not support websockt pings. hence lets send some valid commands
   if(!websocket.send("{\"op\": \"unsubscribe\",\"channel\": \"d5f06780-30a8-4a48-a2f8-7ed181b4a13f \"}") ||
@@ -143,7 +143,7 @@ bool_t MtGoxUsd::sendPing()
   return true;
 }
 
-bool_t MtGoxUsd::handleStreamData(const Buffer& data, Callback& callback)
+bool_t MtGoxBtcUsd::handleStreamData(const Buffer& data, Callback& callback)
 {
   Variant dataVar;
   if(Json::parse(data, dataVar))

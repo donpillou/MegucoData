@@ -7,15 +7,15 @@
 #include "Tools/Json.h"
 #include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
-#include "BitfinexUsd.h"
+#include "BtceBtcUsd.h"
 
-bool_t BitfinexUsd::connect()
+bool_t BtceBtcUsd::connect()
 {
   open = true;
   return true;
 }
 
-bool_t BitfinexUsd::process(Callback& callback)
+bool_t BtceBtcUsd::process(Callback& callback)
 {
   if(!callback.receivedTime(Time::time()))
     return false;
@@ -25,10 +25,8 @@ bool_t BitfinexUsd::process(Callback& callback)
   String dataStr;
   for(;; Thread::sleep(14000))
   {
-    String url("https://api.bitfinex.com/v1/trades/btcusd");
-    if(lastTimestamp != 0)
-      url.printf("https://api.bitfinex.com/v1/trades/btcusd?timestamp=%llu", lastTimestamp);
-    if(!httpRequest.get(url, data, false))
+    String url("https://btc-e.com/api/2/btc_usd/trades");
+    if(!httpRequest.get(url, data))
     {
       error = httpRequest.getErrorString();
       open = false;
@@ -50,8 +48,8 @@ bool_t BitfinexUsd::process(Callback& callback)
     {
       if(lastTimestamp == 0)
       {
-        const HashMap<String, Variant>& tradeData = tradesList.back().toMap();
-        lastTimestamp = tradeData.find("timestamp")->toInt64();
+        const HashMap<String, Variant>& tradeData = tradesList.front().toMap();
+        lastTimestamp = tradeData.find("date")->toInt64();
         if(lastTimestamp == 0)
           continue;
         if(!callback.receivedTime(lastTimestamp * 1000LL))
@@ -62,7 +60,7 @@ bool_t BitfinexUsd::process(Callback& callback)
       {
         const HashMap<String, Variant>& tradeData = i->toMap();
         trade.id = tradeData.find("tid")->toInt64();
-        int64_t timestamp = tradeData.find("timestamp")->toInt64();
+        int64_t timestamp = tradeData.find("date")->toInt64();
         trade.time = timestamp * 1000LL;
         trade.price = tradeData.find("price")->toDouble();
         trade.amount = tradeData.find("amount")->toDouble();

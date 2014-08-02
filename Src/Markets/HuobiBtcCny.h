@@ -5,12 +5,12 @@
 
 #include "Tools/Market.h"
 
-class BtcChinaCny : public Market
+class HuobiBtcCny : public Market
 {
 public:
-  BtcChinaCny() : open(false), lastTradeId(0), timeOffset(0), timeOffsetSet(false) {}
+  HuobiBtcCny() : open(false), lastTradeId(0) {}
 
-  virtual String getChannelName() const {return String("BtcChina/CNY");}
+  virtual String getChannelName() const {return String("Huobi BTC/CNY");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}
@@ -21,7 +21,6 @@ private:
   String error;
   bool_t open;
 
+  List<String> lastTradeList;
   uint64_t lastTradeId;
-  timestamp_t timeOffset;
-  bool_t timeOffsetSet;
 };

@@ -7,15 +7,15 @@
 #include "Tools/Json.h"
 #include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
-#include "BtcChinaCny.h"
+#include "BtcChinaBtcCny.h"
 
-bool_t BtcChinaCny::connect()
+bool_t BtcChinaBtcCny::connect()
 {
   open = true;
   return true;
 }
 
-bool_t BtcChinaCny::process(Callback& callback)
+bool_t BtcChinaBtcCny::process(Callback& callback)
 {
   if(!callback.receivedTime(Time::time()))
     return false;

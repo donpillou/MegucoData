@@ -5,12 +5,12 @@
 
 #include "Tools/Market.h"
 
-class BitfinexUsd : public Market
+class BtcChinaBtcCny : public Market
 {
 public:
-  BitfinexUsd() : open(false), lastTradeId(0), lastTimestamp(0) {}
+  BtcChinaBtcCny() : open(false), lastTradeId(0), timeOffset(0), timeOffsetSet(false) {}
 
-  virtual String getChannelName() const {return String("Bitfinex/USD");}
+  virtual String getChannelName() const {return String("BtcChina BTC/CNY");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}
@@ -22,6 +22,6 @@ private:
   bool_t open;
 
   uint64_t lastTradeId;
-  int64_t lastTimestamp;
-
+  timestamp_t timeOffset;
+  bool_t timeOffsetSet;
 };

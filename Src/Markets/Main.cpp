@@ -15,35 +15,35 @@
 
 #include "Tools/RelayConnection.h"
 
-#ifdef MARKET_BITSTAMPUSD
-#include "Markets/BitstampUsd.h"
-typedef BitstampUsd MarketConnection;
-const char* exchangeName = "BitstampUsd";
+#ifdef MARKET_BITSTAMPBTCUSD
+#include "Markets/BitstampBtcUsd.h"
+typedef BitstampBtcUsd MarketConnection;
+const char* exchangeName = "BitstampBtcUsd";
 #endif
-#ifdef MARKET_MTGOXUSD
-#include "Markets/MtGoxUsd.h"
-typedef MtGoxUsd MarketConnection;
-const char* exchangeName = "MtGoxUsd";
+#ifdef MARKET_MTGOXBTCUSD
+#include "Markets/MtGoxBtcUsd.h"
+typedef MtGoxBtcUsd MarketConnection;
+const char* exchangeName = "MtGoxBtcUsd";
 #endif
-#ifdef MARKET_HUOBICNY
-#include "Markets/HuobiCny.h"
-typedef HuobiCny MarketConnection;
-const char* exchangeName = "HuobiCny";
+#ifdef MARKET_HUOBIBTCCNY
+#include "Markets/HuobiBtcCny.h"
+typedef HuobiBtcCny MarketConnection;
+const char* exchangeName = "HuobiBtcCny";
 #endif
-#ifdef MARKET_BTCCHINACNY
-#include "Markets/BtcChinaCny.h"
-typedef BtcChinaCny MarketConnection;
-const char* exchangeName = "BtcChinaCny";
+#ifdef MARKET_BTCCHINABTCCNY
+#include "Markets/BtcChinaBtcCny.h"
+typedef BtcChinaBtcCny MarketConnection;
+const char* exchangeName = "BtcChinaBtcCny";
 #endif
-#ifdef MARKET_BITFINEXUSD
-#include "Markets/BitfinexUsd.h"
-typedef BitfinexUsd MarketConnection;
-const char* exchangeName = "BitfinexUsd";
+#ifdef MARKET_BITFINEXBTCUSD
+#include "Markets/BitfinexBtcUsd.h"
+typedef BitfinexBtcUsd MarketConnection;
+const char* exchangeName = "BitfinexBtcUsd";
 #endif
-#ifdef MARKET_BTCEUSD
-#include "Markets/BtceUsd.h"
-typedef BtceUsd MarketConnection;
-const char* exchangeName = "BtceUsd";
+#ifdef MARKET_BTCEBTCUSD
+#include "Markets/BtceBtcUsd.h"
+typedef BtceBtcUsd MarketConnection;
+const char* exchangeName = "BtceBtcUsd";
 #endif
 #ifdef MARKET_KRAKENBTCUSD
 #include "Markets/KrakenBtcUsd.h"
