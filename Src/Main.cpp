@@ -55,12 +55,14 @@ int_t main(int_t argc, char_t* argv[])
   // daemonize process
   if(background)
   {
+    const char* logFile = "MegucoData.log";
+  
     Console::printf("Starting as daemon...\n");
 
-    int fd = open("traded.log", O_CREAT | O_WRONLY, S_IRUSR | S_IWUSR);
+    int fd = open(logFile, O_CREAT | O_WRONLY | O_CLOEXEC, S_IRUSR | S_IWUSR);
     if(fd == -1)
     {
-      Console::errorf("error: Could not open file %s: %s\n", "traded.log", strerror(errno));
+      Console::errorf("error: Could not open file %s: %s\n", logFile, strerror(errno));
       return -1;
     }
     if(dup2(fd, STDOUT_FILENO) == -1)
@@ -70,7 +72,7 @@ int_t main(int_t argc, char_t* argv[])
     }
     if(dup2(fd, STDERR_FILENO) == -1)
     {
-      Console::errorf("error: Could not reopen stdout: %s\n", strerror(errno));
+      Console::errorf("error: Could not reopen stderr: %s\n", strerror(errno));
       return 0;
     }
     close(fd);
