@@ -279,6 +279,7 @@ void_t ClientHandler::handleMessage(const DataProtocol::Header& messageHeader, b
       header->destination = header->source = 0;
       header->messageType = DataProtocol::tradeMessage;
       uint64_t newestChannelTradeId = subscription.channel->getLastTradeId();
+      client.reserve(sizeof(message) * count);
       for(DataProtocol::Trade* trade = (DataProtocol::Trade*)(tradeResponse + 1), * tradeEnd = trade + count; trade < tradeEnd; ++trade)
       {
         DataProtocol::TradeMessage* treadeMessage = (DataProtocol::TradeMessage*)(header + 1);

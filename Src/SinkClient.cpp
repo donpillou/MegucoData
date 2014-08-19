@@ -219,8 +219,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
         }
         else
         {
-          if(itTrade != itTradeEnd)
-            ++itTrade;
+          ++itTrade;
 
           byte_t message[4000];
           DataProtocol::Header* header = (DataProtocol::Header*)message;
