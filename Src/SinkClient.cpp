@@ -5,12 +5,13 @@
 #include <nstd/Error.h>
 #include <nstd/Console.h>
 #include <nstd/List.h>
+#include <nstd/Buffer.h>
 
 #include "Tools/Socket.h"
 #include "Tools/Math.h"
 #include "SinkClient.h"
 
-SinkClient::SinkClient(const String& channelName, uint16_t serverPort) : channelName(channelName), dirName(channelName), serverPort(serverPort), channelId(0), lastTradeId(0)
+SinkClient::SinkClient(const String& channelName, uint16_t serverPort) : channelName(channelName), dirName(channelName), serverPort(serverPort), channelId(0), lastTradeId(0), lastFileTradeId(0)
 {
   dirName.replace(' ', '/');
 }
@@ -132,8 +133,34 @@ void_t SinkClient::loadTradesFromFile()
     files.append(path);
   }
   files.sort();
+
+  for(List<String>::Iterator i = files.begin(), end = files.end(); i != end; ++i)
+  {
+    File file;
+    String filePath = dirName + "/" + *i;
+    if(file.open(filePath))
+    {
+      int64_t tradeCount = file.size() / sizeof(DataProtocol::Trade);
+      if(tradeCount)
+      {
+        int64_t lastTradePos = sizeof(DataProtocol::Trade) * (tradeCount - 1);
+        if(file.seek(lastTradePos) == lastTradePos)
+        {
+          DataProtocol::Trade trade;
+          if(file.read(&trade, sizeof(trade)) == sizeof(trade))
+          {
+            if(lastFileTradeId)
+              tradeFiles.append(lastFileTradeId, filePath);
+            lastFileTradeId = trade.id;
+          }
+        }
+      }
+    }
+  }
+
   while(files.size() > 7)
     files.removeFront();
+
   for(List<String>::Iterator i = files.begin(), end = files.end(); i != end; ++i)
     loadTradesFromFile(dirName + "/" + *i);
 }
@@ -162,6 +189,33 @@ void_t SinkClient::loadTradesFromFile(const String& fileName)
     Console::errorf("error: Could not read data from %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
 }
 
+bool_t SinkClient::sendTradesFile(uint64_t source, Socket& socket, const String& fileName)
+{
+  File file;
+  if(file.open(fileName))
+  {
+    size_t fileSize = (size_t)file.size();
+    Buffer buffer;
+    size_t bufferSize = sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeResponse) + fileSize;
+    buffer.resize(bufferSize);
+    if(file.read((byte_t*)buffer + sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeResponse), fileSize) == fileSize)
+    {
+      DataProtocol::Header* header = (DataProtocol::Header*)(const byte_t*)buffer;
+      header->size = bufferSize;
+      header->destination = source;
+      header->source = 0;
+      header->messageType = DataProtocol::tradeResponse;
+      DataProtocol::TradeResponse* tradeResponse = (DataProtocol::TradeResponse*)(header + 1);
+      tradeResponse->channelId = channelId;
+
+      if(socket.send(buffer, bufferSize) != bufferSize)
+        return false;
+      return true;
+    }
+  }
+  return false;
+}
+
 bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& messageHeader, byte_t* data, size_t size)
 {
   switch(messageHeader.messageType)
@@ -179,7 +233,14 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
 
           HashMap<uint64_t, uint64_t>::Iterator itKey = keyTrades.find(minTime / (60ULL * 60ULL * 1000ULL));
           if(itKey == keyTrades.end())
+          {
+            Time time(Time::time() - (timestamp_t)tradeRequest->maxAge, true);
+            String fileDate = time.toString("%Y-%m-%d");
+            String fileName = dirName + "/trades-" + fileDate + ".dat";
+            if(sendTradesFile(messageHeader.source, socket, fileName))
+              return true;
             itKey = keyTrades.begin();
+          }
           HashMap<uint64_t, Trade>::Iterator itTrade = trades.find(*itKey);
           if(itTrade == trades.end())
             itTrade = trades.begin();
@@ -203,6 +264,11 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
         HashMap<uint64_t, Trade>::Iterator itTradeEnd = trades.end();
         if(itTrade == itTradeEnd)
         {
+          HashMap<uint64_t, String>::Iterator it = tradeFiles.find(tradeRequest->sinceId);
+          if(it != tradeFiles.end())
+            if(sendTradesFile(messageHeader.source, socket, *it))
+              return true;
+
           byte_t message[sizeof(DataProtocol::Header) + sizeof(DataProtocol::ErrorResponse)];
           DataProtocol::Header* header = (DataProtocol::Header*)message;
           DataProtocol::ErrorResponse* errorResponse = (DataProtocol::ErrorResponse*)(header + 1);
@@ -215,7 +281,7 @@ bool_t SinkClient::handleMessage(Socket& socket, const DataProtocol::Header& mes
           String errorMessage("Unknown trade id.");
           Memory::copy(errorResponse->errorMessage, (const char_t*)errorMessage, errorMessage.length() + 1);
           if(socket.send(message, sizeof(message)) != sizeof(message))
-            break;
+            return false;
         }
         else
         {
@@ -275,11 +341,18 @@ bool_t SinkClient::handleTradeMessage(DataProtocol::TradeMessage& tradeMessage)
     fileName = dirName + "/trades-" + fileDate + ".dat";
     if(!file.open(fileName, File::writeFlag | File::appendFlag))
       Console::errorf("error: Could not open file %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
+    else
+    {
+      if(lastFileTradeId)
+        tradeFiles.append(lastFileTradeId, fileName);
+    }
   }
   if(file.isOpen())
   {
     if(file.write(&tradeMessage.trade, sizeof(DataProtocol::Trade)) != sizeof(DataProtocol::Trade))
       Console::errorf("error: Could not write data to %s: %s\n", (const tchar_t*)fileName, (const tchar_t*)Error::getErrorString());
+    else
+      lastFileTradeId = trade.id;
   }
 
   return true;
@@ -301,9 +374,9 @@ void_t SinkClient::addTrade(const DataProtocol::Trade& trade)
   if(keyTrades.find(keyTime) == keyTrades.end())
     keyTrades.append(keyTime, trade.id);
 
-  while(time - trades.front().time > 7ULL * 24ULL * 60ULL * 60ULL * 1000ULL)
+  while(time - trades.front().time > 2ULL * 24ULL * 60ULL * 60ULL * 1000ULL)
     trades.removeFront();
-  while(keyTime - keyTrades.begin().key() > 7ULL * 24ULL)
+  while(keyTime - keyTrades.begin().key() > 2ULL * 24ULL)
     keyTrades.removeFront();
 
   lastTradeId = trade.id;

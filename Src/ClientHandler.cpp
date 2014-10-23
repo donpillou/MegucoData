@@ -36,7 +36,7 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
     if(size < sizeof(DataProtocol::Header))
       break;
     DataProtocol::Header* header = (DataProtocol::Header*)pos;
-    if(header->size < sizeof(DataProtocol::Header) || header->size >= 5000)
+    if(header->size < sizeof(DataProtocol::Header) || (header->size >= 5000 && mode != sinkMode))
     {
       client.close();
       return 0;
@@ -56,7 +56,7 @@ size_t ClientHandler::handle(byte_t* data, size_t size)
     pos += header->size;
     size -= header->size;
   }
-  if(size >= 5000)
+  if(size >= 5000 && mode != sinkMode)
   {
     client.close();
     return 0;

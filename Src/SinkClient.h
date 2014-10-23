@@ -32,8 +32,10 @@ private:
 
   uint64_t channelId;
   uint64_t lastTradeId;
+  uint64_t lastFileTradeId;
   HashMap<uint64_t, Trade> trades;
   HashMap<uint64_t, uint64_t> keyTrades;
+  HashMap<uint64_t, String> tradeFiles;
 
   String fileDate;
   String fileName;
@@ -46,6 +48,7 @@ private:
 
   void_t loadTradesFromFile();
   void_t loadTradesFromFile(const String& file);
+  bool_t sendTradesFile(uint64_t source, Socket& socket, const String& file);
 
   void_t addTrade(const DataProtocol::Trade& trade);
 };
