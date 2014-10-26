@@ -198,7 +198,7 @@ bool_t SinkClient::sendTradesFile(uint64_t source, Socket& socket, const String&
     Buffer buffer;
     size_t bufferSize = sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeResponse) + fileSize;
     buffer.resize(bufferSize);
-    if(file.read((byte_t*)buffer + sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeResponse), fileSize) == fileSize)
+    if(file.read((byte_t*)buffer + sizeof(DataProtocol::Header) + sizeof(DataProtocol::TradeResponse), fileSize) == (ssize_t)fileSize)
     {
       DataProtocol::Header* header = (DataProtocol::Header*)(const byte_t*)buffer;
       header->size = bufferSize;
@@ -208,7 +208,7 @@ bool_t SinkClient::sendTradesFile(uint64_t source, Socket& socket, const String&
       DataProtocol::TradeResponse* tradeResponse = (DataProtocol::TradeResponse*)(header + 1);
       tradeResponse->channelId = channelId;
 
-      if(socket.send(buffer, bufferSize) != bufferSize)
+      if(socket.send(buffer, bufferSize) != (ssize_t)bufferSize)
         return false;
       return true;
     }
