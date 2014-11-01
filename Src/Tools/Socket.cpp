@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <errno.h>
 #include <arpa/inet.h>
+#include <poll.h>
 #include <cstring>
 #endif
 
@@ -63,7 +64,11 @@ bool_t Socket::open()
   if((SOCKET)s != INVALID_SOCKET)
     return false;
 
+#ifdef _WIN32
   s = socket(AF_INET, SOCK_STREAM, 0);
+#else
+  s = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+#endif
   if((SOCKET)s == INVALID_SOCKET)
     return false;
   return true;
@@ -83,15 +88,26 @@ bool_t Socket::isOpen() const
   return (SOCKET)s != INVALID_SOCKET;
 }
 
-bool_t Socket::accept(const Socket& from, uint32_t& ip, uint16_t& port)
+void_t Socket::swap(Socket& other)
 {
-  if((SOCKET)s != INVALID_SOCKET)
+  SOCKET tmp = s;
+  s = other.s;
+  other.s = tmp;
+}
+
+bool_t Socket::accept(Socket& to, uint32_t& ip, uint16_t& port)
+{
+  if((SOCKET)to.s != INVALID_SOCKET)
     return false;
 
   struct sockaddr_in sin;
   socklen_t val = sizeof(sin);
-  s = ::accept((SOCKET)from.s, (struct sockaddr *)&sin, &val);
-  if((SOCKET)s == INVALID_SOCKET)
+#ifdef _WIN32
+  to.s = ::accept((SOCKET)s, (struct sockaddr *)&sin, &val);
+#else
+  to.s = ::accept4((SOCKET)s, (struct sockaddr *)&sin, &val, SOCK_CLOEXEC);
+#endif
+  if((SOCKET)to.s == INVALID_SOCKET)
     return false;
   port = ntohs(sin.sin_port);
   ip = ntohl(sin.sin_addr.s_addr);
@@ -114,6 +130,20 @@ bool_t Socket::setNoDelay()
 {
   int val = 1;
   if(setsockopt((SOCKET)s, IPPROTO_TCP, TCP_NODELAY, (char*)&val, sizeof(val)) != 0)
+    return false;
+  return true;
+}
+
+bool_t Socket::setSendBufferSize(int_t size)
+{
+  if(setsockopt((SOCKET)s, SOL_SOCKET, SO_SNDBUF, (char*)&size, sizeof(size)) != 0)
+    return false;
+  return true;
+}
+
+bool_t Socket::setReceiveBufferSize(int_t size)
+{
+  if(setsockopt((SOCKET)s, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size)) != 0)
     return false;
   return true;
 }
@@ -188,6 +218,28 @@ int_t Socket::getAndResetErrorStatus()
   if(getsockopt((SOCKET)s, SOL_SOCKET, SO_ERROR, (char*)&optVal, &optLen) != 0)
     return ERRNO;
   return optVal;
+}
+
+bool_t Socket::getSockName(uint32_t& ip, uint16_t& port)
+{
+  sockaddr_in addr;
+  socklen_t len = sizeof(addr);
+  if(getsockname((SOCKET)s, (sockaddr*)&addr, &len) != 0)
+    return false;
+  ip = ntohl(addr.sin_addr.s_addr);
+  port = ntohs(addr.sin_port);
+  return true;
+}
+
+bool_t Socket::getPeerName(uint32_t& ip, uint16_t& port)
+{
+  sockaddr_in addr;
+  socklen_t len = sizeof(addr);
+  if(getpeername((SOCKET)s, (sockaddr*)&addr, &len) != 0)
+    return false;
+  ip = ntohl(addr.sin_addr.s_addr);
+  port = ntohs(addr.sin_port);
+  return true;
 }
 
 ssize_t Socket::send(const byte_t* data, size_t size)
@@ -266,14 +318,18 @@ ssize_t Socket::recv(byte_t* data, size_t maxSize, size_t minSize)
   }
 }
 
+void_t Socket::setLastError(int_t error)
+{
+#ifdef _WIN32
+  WSASetLastError(error);
+#else
+  errno = error;
+#endif
+}
+
 int_t Socket::getLastError()
 {
   return ERRNO;
-}
-
-String Socket::getLastErrorString()
-{
-  return getErrorString(ERRNO);
 }
 
 String Socket::getErrorString(int_t error)
@@ -299,156 +355,225 @@ String Socket::getErrorString(int_t error)
 #endif
 }
 
+uint32_t Socket::inetAddr(const String& addr)
+{
+  return ntohl(inet_addr((const char_t*)addr));
+}
+
+String Socket::inetNtoA(uint32_t ip)
+{
+  in_addr in;
+  in.s_addr = htonl(ip);
+  char* buf = inet_ntoa(in);
+  return String(buf, String::length(buf));
+}
+
 struct SocketSelectorPrivate
 {
-  fd_set readfds;
-  fd_set writefds;
-#ifndef _WIN32
-  int nfds;
-#endif
+#ifdef _WIN32
   struct SocketInfo
   {
     Socket* socket;
+    SOCKET s;
+    WSAEVENT event;
     uint_t events;
   };
-  HashMap<SOCKET, SocketInfo> socketInfo;
-  Array<SOCKET> sockets;
+  Array<WSAEVENT> events;
+  HashMap<Socket*, SocketInfo> sockets;
+  HashMap<WSAEVENT, SocketInfo*> eventToSocket;
+
+  static long mapEvents(uint_t events)
+  {
+    long networkEvents = 0;
+    if(events & Socket::Selector::readEvent)
+      networkEvents |= FD_READ | FD_CLOSE;
+    if(events & Socket::Selector::writeEvent)
+      networkEvents |= FD_WRITE | FD_CLOSE;
+    if(events & Socket::Selector::acceptEvent)
+      networkEvents |= FD_ACCEPT;
+    if(events & Socket::Selector::connectEvent)
+      networkEvents |= FD_CONNECT | FD_CLOSE;
+    return networkEvents;
+  }
+#else
+  struct SocketInfo
+  {
+    Socket* socket;
+    size_t index;
+    uint_t events;
+  };
+
+  Array<pollfd> pollfds;
+  HashMap<Socket*, SocketInfo> sockets;
+  HashMap<SOCKET, SocketInfo*> fdToSocket;
   HashMap<Socket*, uint_t> selectedSockets;
+
+  static short mapEvents(uint_t events)
+  {
+    short pollEvents = 0;
+    if(events & (Socket::Selector::readEvent | Socket::Selector::acceptEvent))
+      pollEvents |= POLLIN | POLLRDHUP | POLLHUP;
+    if(events & (Socket::Selector::writeEvent | Socket::Selector::connectEvent))
+      pollEvents |= POLLOUT | POLLRDHUP | POLLHUP;
+    return pollEvents;
+  }
+#endif
 };
 
-Socket::Selector::Selector()
-{
-  SocketSelectorPrivate* p;
-  data = p = new SocketSelectorPrivate;
-  FD_ZERO(&p->readfds);
-  FD_ZERO(&p->writefds);
-#ifndef _WIN32
-  p->nfds = 0;
-#endif
-}
+Socket::Selector::Selector() : data(new SocketSelectorPrivate) {}
 
 Socket::Selector::~Selector() {delete (SocketSelectorPrivate*)data;}
 
 void_t Socket::Selector::set(Socket& socket, uint_t events)
 {
-  SOCKET s = (SOCKET)socket.s;
-  if(s == INVALID_SOCKET)
-    return;
   SocketSelectorPrivate* p = (SocketSelectorPrivate*)data;
-  HashMap<SOCKET, SocketSelectorPrivate::SocketInfo>::Iterator it = p->socketInfo.find(s);
-  if(it != p->socketInfo.end())
+  HashMap<Socket*, SocketSelectorPrivate::SocketInfo>::Iterator it = p->sockets.find(&socket);
+#ifdef _WIN32
+  if(it != p->sockets.end())
   {
-    SocketSelectorPrivate::SocketInfo& socketInfo = *it;
-    uint_t changedEvents = events ^ socketInfo.events;
-    if(changedEvents & Socket::Selector::readEvent)
-    {
-      if(events & Socket::Selector::readEvent)
-        FD_SET(s, &p->readfds);
-      else
-        FD_CLR(s, &p->readfds);
-    }
-    if(changedEvents & Socket::Selector::writeEvent)
-    {
-      if(events & Socket::Selector::writeEvent)
-        FD_SET(s, &p->writefds);
-      else
-        FD_CLR(s, &p->writefds);
-    }
-    socketInfo.events = events;
+    SocketSelectorPrivate::SocketInfo& sockInfo = *it;
+    if(sockInfo.events == events)
+      return;
+    long networkEvents = SocketSelectorPrivate::mapEvents(events);
+    VERIFY(WSAEventSelect(sockInfo.s, sockInfo.event, networkEvents) !=  SOCKET_ERROR);
+    sockInfo.events = events;
   }
   else
   {
-    if(events & Socket::Selector::readEvent)
-      FD_SET(s, &p->readfds);
-    if(events & Socket::Selector::writeEvent)
-      FD_SET(s, &p->writefds);
-    SocketSelectorPrivate::SocketInfo socketInfo = { &socket, events };
-    p->socketInfo.append(s, socketInfo);
-    p->sockets.append(s);
-#ifndef _WIN32
-    if(s >= p->nfds)
-      p->nfds = s + 1;
-#endif
+    SOCKET s = socket.s;
+    if(s == INVALID_SOCKET)
+      return;
+    SocketSelectorPrivate::SocketInfo& sockInfo = p->sockets.append(&socket, SocketSelectorPrivate::SocketInfo());
+    sockInfo.socket = &socket;
+    sockInfo.s = s;
+    WSAEVENT event = WSACreateEvent();
+    ASSERT(event != WSA_INVALID_EVENT);
+    sockInfo.event = event;
+    long networkEvents = SocketSelectorPrivate::mapEvents(events);
+    VERIFY(WSAEventSelect(s, event, networkEvents) !=  SOCKET_ERROR);
+    sockInfo.events = events;
+    p->events.append(event);
+    p->eventToSocket.append(event, &sockInfo);
   }
+#else
+  if(it != p->sockets.end())
+  {
+    SocketSelectorPrivate::SocketInfo& sockInfo = *it;
+    if(sockInfo.events == events)
+      return;
+    p->pollfds[sockInfo.index].events = SocketSelectorPrivate::mapEvents(events);
+    sockInfo.events = events;
+  }
+  else
+  {
+    SOCKET s = socket.s;
+    if(s == INVALID_SOCKET)
+      return;
+    SocketSelectorPrivate::SocketInfo& sockInfo = p->sockets.append(&socket, SocketSelectorPrivate::SocketInfo());
+    sockInfo.socket = &socket;
+    sockInfo.index = p->pollfds.size();
+    sockInfo.events = events;
+    p->fdToSocket.append(s, &sockInfo);
+    pollfd& pfd = p->pollfds.append(pollfd());
+    pfd.fd = socket.s;
+    pfd.events = SocketSelectorPrivate::mapEvents(events);
+    pfd.revents = 0;
+  }
+#endif
 }
 
 void_t Socket::Selector::remove(Socket& socket)
 {
   SocketSelectorPrivate* p = (SocketSelectorPrivate*)data;
-  SOCKET s = (SOCKET)socket.s;
-  HashMap<SOCKET, SocketSelectorPrivate::SocketInfo>::Iterator it = p->socketInfo.find(s);
-  if(it == p->socketInfo.end())
+  HashMap<Socket*, SocketSelectorPrivate::SocketInfo>::Iterator it = p->sockets.find(&socket);
+  if(it == p->sockets.end())
     return;
-  uint_t events = (*it).events;
-  if(events & Socket::Selector::readEvent)
-    FD_CLR((SOCKET)socket.s, &p->readfds);
-  if(events & Socket::Selector::writeEvent)
-    FD_CLR((SOCKET)socket.s, &p->writefds);
-  p->socketInfo.remove(it);
-  p->selectedSockets.remove(&socket);
-  for(SOCKET* i = p->sockets, * end = i + p->sockets.size(); i < end; ++i)
-    if(*i == s)
-    {
-      p->sockets.remove(i - p->sockets);
-      break;
-    }
-#ifndef _WIN32
-  if(s + 1 == p->nfds)
+  SocketSelectorPrivate::SocketInfo& sockInfo = *it;
+#ifdef _WIN32
+  WSAEVENT event = sockInfo.event;
+  Array<WSAEVENT>::Iterator itEvent = p->events.find(event);
+  if(itEvent != p->events.end())
+    p->events.remove(itEvent);
+  WSACloseEvent(event);
+  p->sockets.remove(it);
+  p->eventToSocket.remove(event);
+#else
+  size_t index = sockInfo.index;
+  pollfd& pfd = p->pollfds[index];
+  p->fdToSocket.remove(pfd.fd);
+  p->pollfds.remove(index);
+  p->sockets.remove(it);
+  for(HashMap<Socket*, SocketSelectorPrivate::SocketInfo>::Iterator i = p->sockets.begin(), end = p->sockets.end(); i != end; ++i)
   {
-    SOCKET nfds = 0;
-    for(SOCKET* i = p->sockets, * end = i + p->sockets.size(); i < end; ++i)
-      if(*i > nfds)
-        nfds = *i;
-    p->nfds = nfds + 1;
+    SocketSelectorPrivate::SocketInfo& sockInfo = *i;
+    if(sockInfo.index > index)
+      --sockInfo.index;
   }
+  p->selectedSockets.remove(&socket);
 #endif
 }
 
-//#include <nstd/Console.h>
 bool_t Socket::Selector::select(Socket*& socket, uint_t& events, timestamp_t timeout)
 {
   SocketSelectorPrivate* p = (SocketSelectorPrivate*)data;
+#ifdef _WIN32
+  DWORD count = (DWORD)p->events.size();
+  DWORD dw = WSAWaitForMultipleEvents(count, (WSAEVENT*)p->events, FALSE, (DWORD)timeout, FALSE);
+  if(dw >= WSA_WAIT_EVENT_0 && dw < WSA_WAIT_EVENT_0 + count)
+  {
+    WSAEVENT event = p->events[dw - WSA_WAIT_EVENT_0];
+    HashMap<WSAEVENT, SocketSelectorPrivate::SocketInfo*>::Iterator it = p->eventToSocket.find(event);
+    ASSERT(it != p->eventToSocket.end());
+    SocketSelectorPrivate::SocketInfo* sockInfo = *it;
+    WSANETWORKEVENTS selectedEvents = {};
+    VERIFY(WSAEnumNetworkEvents(sockInfo->s, event, &selectedEvents) != SOCKET_ERROR);
+    uint32_t revents = selectedEvents.lNetworkEvents;
 
+    events = 0;
+    if(revents & (FD_READ | FD_CLOSE | FD_ACCEPT))
+      events |= sockInfo->events & (readEvent | acceptEvent);
+    if(revents & (FD_WRITE | FD_CONNECT) || (events == 0 && revents & FD_CLOSE))
+      events |= sockInfo->events & (writeEvent | connectEvent);
+
+    socket = sockInfo->socket;
+    return true;
+  }
+  else
+  {
+    socket = 0;
+    events = 0;
+    return true; // timeout
+  }
+#else
   if(p->selectedSockets.isEmpty())
   {
-    fd_set readfds = p->readfds;
-    fd_set writefds = p->writefds;
-    timeval tv = { (long)(timeout / 1000L), (long)((timeout % 1000LL)) * 1000L };
-    //Console::printf("select: readfds=%u, writefds=%u\n", readfds.fd_count, writefds.fd_count);
-    int selectionCount =  ::select(
-#ifdef _WIN32
-      0
-#else
-      p->nfds
-#endif
-      , &readfds, &writefds, 0, &tv);
-    if(selectionCount == SOCKET_ERROR)
-      return false;
-    if(selectionCount > 0)
+    int count = poll(p->pollfds, p->pollfds.size(), timeout);
+    if(count > 0)
     {
-      uint_t events = 0;
-      for(SOCKET* i = p->sockets, * end = i + p->sockets.size(); i < end; ++i)
+      for(pollfd* i = p->pollfds, * end = i + p->pollfds.size(); i < end; ++i)
       {
-        if(FD_ISSET(*i, &readfds))
+        if(i->revents)
         {
-          events |= Socket::Selector::readEvent;
-          --selectionCount;
-        }
-        if(FD_ISSET(*i, &writefds))
-        {
-          events |= Socket::Selector::writeEvent;
-          --selectionCount;
-        }
-        if(events)
-        {
-          SocketSelectorPrivate::SocketInfo& socketInfo = *p->socketInfo.find(*i);
-          p->selectedSockets.append(socketInfo.socket, events);
-          events = 0;
-          if(selectionCount == 0)
+          HashMap<SOCKET, SocketSelectorPrivate::SocketInfo*>::Iterator it = p->fdToSocket.find(i->fd);
+          ASSERT(it != p->fdToSocket.end());
+          SocketSelectorPrivate::SocketInfo* sockInfo = *it;
+          uint_t events = 0;
+          uint_t revents = i->revents;
+
+          if(revents & (POLLIN | POLLRDHUP | POLLHUP))
+            events |= sockInfo->events & (readEvent | acceptEvent);
+          if(revents & POLLOUT || (events == 0 && revents & (POLLRDHUP | POLLHUP)))
+            events |= sockInfo->events & (writeEvent | connectEvent);
+
+          p->selectedSockets.append(sockInfo->socket, events);
+
+          i->revents = 0;
+          if(--count == 0)
             break;
         }
       }
     }
+
     if(p->selectedSockets.isEmpty())
     {
       socket = 0;
@@ -462,4 +587,5 @@ bool_t Socket::Selector::select(Socket*& socket, uint_t& events, timestamp_t tim
   events = *it;
   p->selectedSockets.remove(it);
   return true;
+#endif
 }

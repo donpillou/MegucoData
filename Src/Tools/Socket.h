@@ -19,11 +19,15 @@ public:
   bool_t close();
   bool_t isOpen() const;
 
-  bool_t accept(const Socket& from, uint32_t& ip, uint16_t& port);
+  void_t swap(Socket& other);
+
+  bool_t accept(Socket& to, uint32_t& ip, uint16_t& port);
   bool_t setKeepAlive();
   bool_t setReuseAddress();
   bool_t setNonBlocking();
   bool_t setNoDelay();
+  bool_t setSendBufferSize(int_t size);
+  bool_t setReceiveBufferSize(int_t size);
   bool_t bind(uint32_t ip, uint16_t port);
   bool_t listen();
   bool_t connect(uint32_t ip, uint16_t port);
@@ -33,9 +37,14 @@ public:
 
   int_t getAndResetErrorStatus();
 
+  bool_t getSockName(uint32_t& ip, uint16_t& port);
+  bool_t getPeerName(uint32_t& ip, uint16_t& port);
+
+  static void_t setLastError(int_t error);
   static int_t getLastError();
-  static String getLastErrorString();
-  static String getErrorString(int_t error);
+  static String getErrorString(int_t error = getLastError());
+  static uint32_t inetAddr(const String& addr);
+  static String inetNtoA(uint32_t ip);
 
   class Selector
   {
@@ -44,6 +53,8 @@ public:
     {
       readEvent = 0x01,
       writeEvent = 0x02,
+      acceptEvent = 0x04,
+      connectEvent = 0x08,
     };
 
     Selector();
@@ -59,7 +70,11 @@ public:
 
 private:
 #ifdef _WIN32
-  int_t s; // TODO: use correct type
+#ifdef _AMD64
+  uint64_t s;
+#else
+  uint_t s;
+#endif
 #else
   int_t s;
 #endif

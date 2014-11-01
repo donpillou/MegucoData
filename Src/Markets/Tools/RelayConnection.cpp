@@ -10,7 +10,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
       !socket.connect(Socket::loopbackAddr, port) ||
       !socket.setNoDelay())
   {
-    error = Socket::getLastErrorString();
+    error = Socket::getErrorString();
     socket.close();
     return false;
   }
@@ -26,7 +26,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
     Memory::copy(registerSourceRequest->channel, channelName, channelName.length() + 1);
     if(socket.send(message, sizeof(message)) != sizeof(message))
     {
-      error = Socket::getLastErrorString();
+      error = Socket::getErrorString();
       socket.close();
       return false;
     }
@@ -38,7 +38,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
     DataProtocol::RegisterSinkResponse response;
     if(socket.recv((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
     {
-      error = Socket::getLastErrorString();
+      error = Socket::getErrorString();
       socket.close();
       return false;
     }
@@ -50,7 +50,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
     }
     if(socket.recv((byte_t*)&response, sizeof(response), sizeof(response)) != sizeof(response))
     {
-      error = Socket::getLastErrorString();
+      error = Socket::getErrorString();
       socket.close();
       return false;
     }
@@ -62,7 +62,7 @@ bool_t RelayConnection::connect(uint16_t port, const String& channelName)
     DataProtocol::Header header;
     if(socket.recv((byte_t*)&header, sizeof(header), sizeof(header)) != sizeof(header))
     {
-      error = Socket::getLastErrorString();
+      error = Socket::getErrorString();
       socket.close();
       return false;
     }
@@ -92,7 +92,7 @@ bool_t RelayConnection::sendTrade(const Market::Trade& trade)
   tradeMessage->trade.flags = trade.flags;
   if(socket.send(message, sizeof(message)) != sizeof(message))
   {
-    error = Socket::getLastErrorString();
+    error = Socket::getErrorString();
     socket.close();
     return false;
   }
@@ -110,7 +110,7 @@ bool_t RelayConnection::sendServerTime(uint64_t time)
   timeMessage->time = time;
   if(socket.send(message, sizeof(message)) != sizeof(message))
   {
-    error = Socket::getLastErrorString();
+    error = Socket::getErrorString();
     socket.close();
     return false;
   }
@@ -131,7 +131,7 @@ bool_t RelayConnection::sendTicker(const Market::Ticker& ticker)
   tickerMessage->ticker.bid = ticker.bid;
   if(socket.send(message, sizeof(message)) != sizeof(message))
   {
-    error = Socket::getLastErrorString();
+    error = Socket::getErrorString();
     socket.close();
     return false;
   }

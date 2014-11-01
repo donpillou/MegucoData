@@ -3,6 +3,7 @@
 
 #include <nstd/List.h>
 #include <nstd/HashSet.h>
+#include <nstd/MultiMap.h>
 #include <nstd/Buffer.h>
 
 #include "Socket.h"
@@ -19,16 +20,22 @@ public:
     class Listener
     {
     public:
+      virtual void_t establish() {}
       virtual size_t handle(byte_t* data, size_t size) = 0;
-      virtual void_t write() = 0;
+      virtual void_t write() {}
+      virtual void_t close() {}
+      virtual void_t abolish() {}
     };
 
   public:
     void_t setListener(Listener* listener) {this->listener = listener;}
     Listener* getListener() const {return listener;}
-    void_t reserve(size_t capacity) {socket.reserve(capacity);}
     bool_t send(const byte_t* data, size_t size) {return socket.send(data, size);}
+    void_t suspend() {socket.suspend();}
+    void_t resume() {socket.resume();}
     void_t close() {server.close(socket);}
+    uint32_t getAddr() const {return addr;}
+    uint16_t getPort() const {return port;}
 
   private:
     Client(Server& server, Server::ClientSocket& socket) : listener(0), server(server), socket(socket) {}
@@ -36,6 +43,33 @@ public:
     Listener* listener;
     Server& server;
     Server::ClientSocket& socket;
+    uint32_t addr;
+    uint16_t port;
+
+    friend class Server;
+  };
+
+  class Timer
+  {
+  public:
+    class Listener
+    {
+    public:
+      virtual bool_t execute() = 0;
+    };
+
+  public:
+    Timer() : interval(0), listener(0) {}
+    Timer(const Timer& other) : interval(other.interval), listener(other.listener) {}
+
+    void_t setListener(Listener* listener) {this->listener = listener;}
+    Listener* getListener() const {return listener;}
+
+  private:
+    timestamp_t interval;
+    Listener* listener;
+
+    Timer(timestamp_t interval) : interval(interval), listener(0) {}
 
     friend class Server;
   };
@@ -43,208 +77,109 @@ public:
   class Listener
   {
   public:
-    virtual void_t acceptedClient(Client& client, uint32_t addr, uint16_t port) = 0;
-    virtual void_t closedClient(Client& client) = 0;
+    virtual void_t acceptedClient(Client& client, uint16_t localPort) {};
+    virtual void_t establishedClient(Client& client) {};
+    virtual void_t closedClient(Client& client) {};
+    virtual void_t abolishedClient(Client& client) {};
+    virtual void_t executedTimer(Timer& timer) {};
   };
 
-  Server() : stopped(false), listener(0) {}
-
-  ~Server()
-  {
-    for(List<ServerSocket*>::Iterator i = serverSockets.begin(), end = serverSockets.end(); i != end; ++i)
-      delete *i;
-    for(HashSet<ClientSocket*>::Iterator i = clientSockets.begin(), end = clientSockets.end(); i != end; ++i)
-      delete *i;
-  }
+  Server(int_t sendBuffer = -1, int_t receiveBuffer = -1) : stopped(false), listener(0), sendBuffer(sendBuffer), receiveBuffer(receiveBuffer), cleanupTimer(*this) {}
+  ~Server();
 
   void_t setListener(Listener* listener) {this->listener = listener;}
+  Listener* getListener() const {return listener;}
 
-  bool_t listen(uint16_t port)
-  {
-    ServerSocket* socket = new ServerSocket(*this);
-    if(!socket->open() ||
-       !socket->setReuseAddress() ||
-       !socket->bind(Socket::anyAddr, port) ||
-       !socket->listen())
-    {
-      delete socket;
-      return false;
-    }
-    selector.set(*socket, Socket::Selector::readEvent);
-    serverSockets.append(socket);
-    return true;
-  }
-  
-  void_t stop()
-  {
-    stopped = true;
-    for(List<ServerSocket*>::Iterator i = serverSockets.begin(), end = serverSockets.end(); i != end; ++i)
-      (*i)->close();
-  }
-
-  bool_t process()
-  {
-    Socket* socket;
-    uint_t selectEvent;
-    while(!stopped)
-    {
-      if(!selector.select(socket, selectEvent, 1000))
-        return false;
-      if(socket)
-      {
-        if(selectEvent & Socket::Selector::writeEvent)
-          ((CallbackSocket*)socket)->write();
-        if(selectEvent & Socket::Selector::readEvent)
-          ((CallbackSocket*)socket)->read();
-      }
-      if(!socketsToDelete.isEmpty())
-      {
-        ClientSocket* clientSocket = socketsToDelete.front();
-        clientSockets.remove(clientSocket);
-        socketsToDelete.remove(socketsToDelete.begin());
-        if(listener)
-          listener->closedClient(clientSocket->client);
-        delete clientSocket;
-      }
-    }
-    return true;
-  }
+  bool_t listen(uint16_t port);
+  Client* connect(uint32_t addr, uint16_t port);
+  Timer& addTimer(timestamp_t interval);
+  bool_t process();
+  void_t stop();
 
 private:
   class CallbackSocket : public Socket
   {
   public:
-    virtual void_t read() = 0;
-    virtual void_t write() = 0;
+    Server& server;
+    CallbackSocket(Server& server) : server(server) {}
+    virtual void_t read() {};
+    virtual void_t write() {};
   };
 
   class ClientSocket : public CallbackSocket
   {
   public:
-    ClientSocket(Server& server) : server(server), client(server, *this) {}
-
-    void_t reserve(size_t capacity)
-    {
-      sendBuffer.reserve(sendBuffer.size() + capacity);
-    }
-
-    bool_t send(const byte_t* data, size_t size)
-    {
-      if(sendBuffer.isEmpty())
-        server.selector.set(*this, Socket::Selector::readEvent | Socket::Selector::writeEvent);
-      sendBuffer.append(data, size);
-      return true;
-    }
-
-    virtual void_t read()
-    {
-      size_t bufferSize = recvBuffer.size();
-      recvBuffer.resize(bufferSize + 1500);
-      ssize_t received = Socket::recv(recvBuffer + bufferSize, 1500);
-      switch(received)
-      {
-      case -1:
-        if(getLastError() == 0) // EWOULDBLOCK
-          return;
-        // no break
-      case 0:
-        server.close(*this);
-        return;
-      }
-      bufferSize += received;
-      recvBuffer.resize(bufferSize);
-      size_t handled = client.listener ? client.listener->handle(recvBuffer, bufferSize) : bufferSize;
-      recvBuffer.removeFront(handled);
-    }
-
-    virtual void_t write()
-    {
-      if(sendBuffer.isEmpty())
-        return;
-      ssize_t sent = Socket::send(sendBuffer, sendBuffer.size());
-      switch(sent)
-      {
-      case -1:
-        if(getLastError() == 0) // EWOULDBLOCK
-          return;
-        // no break
-      case 0:
-        server.close(*this);
-        return;
-      }
-      sendBuffer.removeFront(sent);
-      if(sendBuffer.isEmpty())
-      {
-        sendBuffer.free();
-        server.selector.set(*this, Socket::Selector::readEvent);
-        if(client.listener)
-          client.listener->write();
-      }
-    }
-
-    Server& server;
     Client client;
     Buffer sendBuffer;
     Buffer recvBuffer;
+    bool_t suspended;
+
+    ClientSocket(Server& server) : CallbackSocket(server), client(server, *this), suspended(false) {}
+
+    bool_t send(const byte_t* data, size_t size);
+    void_t suspend();
+    void_t resume();
+
+    virtual void_t read();
+    virtual void_t write();
   };
 
   class ServerSocket : public CallbackSocket
   {
   public:
-    ServerSocket(Server& server) : server(server) {}
+    uint16_t port;
+    ServerSocket(Server& server, uint16_t port) : CallbackSocket(server), port(port) {}
     virtual void_t read() {server.accept(*this);}
-    virtual void_t write() {}
-    Server& server;
   };
 
-  void_t close(ClientSocket& socket)
+  class ConnectSocket : public CallbackSocket
   {
-    if(!socket.isOpen())
-      return;
-    selector.remove(socket);
-    socket.close();
-    socketsToDelete.append(&socket);
-  }
-
-  //void_t closeAll()
-  //{
-  //  for(HashSet<ClientSocket*>::Iterator i = clientSockets.begin(), end = clientSockets.end(); i != end; ++i)
-  //  {
-  //    ClientSocket* clientSocket = *i;
-  //    selector.remove(*clientSocket);
-  //    clientSocket->close();
-  //    if(listener)
-  //      listener->closedClient(clientSocket->client);
-  //    delete clientSocket;
-  //  }
-  //  socketsToDelete.clear();
-  //  clientSockets.clear();
-  //}
-
-  void_t accept(Socket& socket)
-  {
-    ClientSocket* clientSocket = new ClientSocket(*this);
-    uint32_t addr;
-    uint16_t port;
-    if(!clientSocket->accept(socket, addr, port) ||
-       !clientSocket->setNonBlocking() ||
-       !clientSocket->setKeepAlive() ||
-       !clientSocket->setNoDelay())
+  public:
+    ClientSocket* clientSocket;
+    ConnectSocket(Server& server) : CallbackSocket(server), clientSocket(new ClientSocket(server)) {}
+    ~ConnectSocket() {delete clientSocket;}
+    virtual void_t write()
     {
-      delete clientSocket;
-      return;
+      int_t err = getAndResetErrorStatus();
+      if(err == 0)
+        server.establish(*this);
+      else
+        server.abolish(*this, err);
     }
-    selector.set(*clientSocket, Socket::Selector::readEvent);
-    clientSockets.append(clientSocket);
-    if(listener)
-      listener->acceptedClient(clientSocket->client, addr, port);
-  }
+  };
 
+  class CleanupTimer : public Timer::Listener
+  {
+  private:
+    Server& server;
+  private:
+    CleanupTimer(Server& server) : server(server) {}
+  private:
+    virtual bool_t execute() {server.cleanup(); return true;}
+    friend class Server;
+  };
+
+private:
   volatile bool stopped;
   Listener* listener;
   Socket::Selector selector;
   List<ServerSocket*> serverSockets;
+  HashSet<ConnectSocket*> connectSockets;
   HashSet<ClientSocket*> clientSockets;
   List<ClientSocket*> socketsToDelete;
+  MultiMap<timestamp_t, Timer> timers;
+  int_t sendBuffer;
+  int_t receiveBuffer;
+  CleanupTimer cleanupTimer;
+
+private:
+  void_t close(ClientSocket& socket);
+  void_t accept(ServerSocket& socket);
+  void_t establish(ConnectSocket& socket);
+  void_t abolish(ConnectSocket& socket, int_t error);
+  void_t cleanup();
+
+  Server(const Server&);
+  Server& operator=(const Server&);
 };
 
