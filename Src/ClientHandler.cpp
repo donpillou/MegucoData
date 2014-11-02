@@ -1,11 +1,10 @@
 
 #include <nstd/Time.h>
+#include <nstd/Math.h>
 
 #include "ClientHandler.h"
 #include "ServerHandler.h"
 #include "DataProtocol.h"
-
-#include "Tools/Math.h"
 
 ClientHandler::~ClientHandler()
 {

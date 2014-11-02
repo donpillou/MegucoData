@@ -3,9 +3,9 @@
 #include <nstd/Time.h>
 #include <nstd/Console.h>
 #include <nstd/Variant.h>
+#include <nstd/Math.h>
 
 #include "Tools/Json.h"
-#include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
 #include "HuobiBtcCny.h"
 

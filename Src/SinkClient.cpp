@@ -6,9 +6,9 @@
 #include <nstd/Console.h>
 #include <nstd/List.h>
 #include <nstd/Buffer.h>
+#include <nstd/Math.h>
 
 #include "Tools/Socket.h"
-#include "Tools/Math.h"
 #include "SinkClient.h"
 
 SinkClient::SinkClient(const String& channelName, uint16_t serverPort) : channelName(channelName), dirName(channelName), serverPort(serverPort), channelId(0), lastTradeId(0), lastFileTradeId(0)
