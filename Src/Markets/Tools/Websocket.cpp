@@ -227,7 +227,7 @@ bool_t Websocket::recv(Buffer& buffer, timestamp_t timeout)
       ws.opcode = (wsheader_type::opcode_type) (data[0] & 0x0f);
       ws.mask = (data[1] & 0x80) == 0x80;
       ws.N0 = (data[1] & 0x7f);
-      ws.header_size = 2 + (ws.N0 == 126? 2 : 0) + (ws.N0 == 127? 6 : 0) + (ws.mask? 4 : 0);
+      ws.header_size = 2 + (ws.N0 == 126? 2 : 0) + (ws.N0 == 127? 8 : 0) + (ws.mask? 4 : 0);
       if (recvBuffer.size() < ws.header_size) { break; /* Need: ws.header_size - rxbuf.size() */ }
       int i;
       if (ws.N0 < 126) {
