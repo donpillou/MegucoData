@@ -5,8 +5,8 @@
 #include <nstd/Variant.h>
 
 #include "Tools/Json.h"
-#include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
+
 #include "BtceBtcUsd.h"
 
 bool_t BtceBtcUsd::connect()
@@ -17,9 +17,6 @@ bool_t BtceBtcUsd::connect()
 
 bool_t BtceBtcUsd::process(Callback& callback)
 {
-  if(!callback.receivedTime(Time::time()))
-    return false;
-
   HttpRequest httpRequest;
   Buffer data;
   String dataStr;
@@ -46,16 +43,6 @@ bool_t BtceBtcUsd::process(Callback& callback)
     Trade trade;
     if(!tradesList.isEmpty())
     {
-      if(lastTimestamp == 0)
-      {
-        const HashMap<String, Variant>& tradeData = tradesList.front().toMap();
-        lastTimestamp = tradeData.find("date")->toInt64();
-        if(lastTimestamp == 0)
-          continue;
-        if(!callback.receivedTime(lastTimestamp * 1000LL))
-          return false;
-      }
-
       for(List<Variant>::Iterator i = --List<Variant>::Iterator(tradesList.end()), begin = tradesList.begin();; --i)
       {
         const HashMap<String, Variant>& tradeData = i->toMap();
@@ -70,7 +57,6 @@ bool_t BtceBtcUsd::process(Callback& callback)
           if(!callback.receivedTrade(trade))
             return false;
           lastTradeId = trade.id;
-          lastTimestamp = timestamp;
         }
         if(i == begin)
           break;

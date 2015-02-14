@@ -10,7 +10,7 @@ class BitfinexBtcUsd : public Market
 public:
   BitfinexBtcUsd() : open(false), lastTradeId(0), lastTimestamp(0) {}
 
-  virtual String getChannelName() const {return String("Bitfinex BTC/USD");}
+  virtual String getChannelName() const {return String("Bitfinex/BTC/USD");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}

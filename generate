@@ -1,5 +1,5 @@
 #!/bin/sh
 
-[ ! -f "Build/mare/mare" ] && Ext/mare/build --buildDir=Build/mare --outputDir=Build/mare --sourceDir=Ext/mare/src
-Build/mare/mare $@
+[ ! -f "Build/Debug/mare/mare" ] && Ext/mare/compile --buildDir=Build/Debug/mare --outputDir=Build/Debug/mare --sourceDir=Ext/mare/src
+Build/Debug/mare/mare $@
 

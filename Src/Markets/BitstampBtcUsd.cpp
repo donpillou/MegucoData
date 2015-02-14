@@ -6,6 +6,7 @@
 
 #include "Tools/Json.h"
 #include "Tools/HttpRequest.h"
+
 #include "BitstampBtcUsd.h"
 
 bool_t BitstampBtcUsd::connect()
@@ -60,9 +61,6 @@ bool_t BitstampBtcUsd::connect()
 
 bool_t BitstampBtcUsd::process(Callback& callback)
 {
-  if(!callback.receivedTime(toServerTime(Time::time())))
-    return false;
-
   HttpRequest httpRequest;
   {
     Buffer data;

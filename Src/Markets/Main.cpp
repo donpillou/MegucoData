@@ -13,40 +13,40 @@
 #include <nstd/Directory.h>
 #include <nstd/Error.h>
 
-#include "Tools/RelayConnection.h"
+#include "Tools/ZlimdbConnection.h"
 
 #ifdef MARKET_BITSTAMPBTCUSD
-#include "Markets/BitstampBtcUsd.h"
+#include "BitstampBtcUsd.h"
 typedef BitstampBtcUsd MarketConnection;
 const char* exchangeName = "BitstampBtcUsd";
 #endif
 #ifdef MARKET_MTGOXBTCUSD
-#include "Markets/MtGoxBtcUsd.h"
+#include "MtGoxBtcUsd.h"
 typedef MtGoxBtcUsd MarketConnection;
 const char* exchangeName = "MtGoxBtcUsd";
 #endif
 #ifdef MARKET_HUOBIBTCCNY
-#include "Markets/HuobiBtcCny.h"
+#include "HuobiBtcCny.h"
 typedef HuobiBtcCny MarketConnection;
 const char* exchangeName = "HuobiBtcCny";
 #endif
 #ifdef MARKET_BTCCHINABTCCNY
-#include "Markets/BtcChinaBtcCny.h"
+#include "BtcChinaBtcCny.h"
 typedef BtcChinaBtcCny MarketConnection;
 const char* exchangeName = "BtcChinaBtcCny";
 #endif
 #ifdef MARKET_BITFINEXBTCUSD
-#include "Markets/BitfinexBtcUsd.h"
+#include "BitfinexBtcUsd.h"
 typedef BitfinexBtcUsd MarketConnection;
 const char* exchangeName = "BitfinexBtcUsd";
 #endif
 #ifdef MARKET_BTCEBTCUSD
-#include "Markets/BtceBtcUsd.h"
+#include "BtceBtcUsd.h"
 typedef BtceBtcUsd MarketConnection;
 const char* exchangeName = "BtceBtcUsd";
 #endif
 #ifdef MARKET_KRAKENBTCUSD
-#include "Markets/KrakenBtcUsd.h"
+#include "KrakenBtcUsd.h"
 typedef KrakenBtcUsd MarketConnection;
 const char* exchangeName = "KrakenBtcUsd";
 #endif
@@ -124,7 +124,7 @@ int_t main(int_t argc, char_t* argv[])
   }
 #endif
 
-  RelayConnection relayConnection;
+  ZlimdbConnection zlimdbConnection;
   MarketConnection marketConnection;
   String channelName = marketConnection.getChannelName();
 
@@ -133,41 +133,34 @@ int_t main(int_t argc, char_t* argv[])
   public:
     virtual bool_t receivedTrade(const Market::Trade& trade)
     {
-      if(!relayConnection->sendTrade(trade))
-        return false;
-      return true;
-    }
-
-    virtual bool_t receivedTime(uint64_t time)
-    {
-      if(!relayConnection->sendServerTime(time))
+      if(!zlimdbConnection->sendTrade(trade))
         return false;
       return true;
     }
 
     virtual bool_t receivedTicker(const Market::Ticker& ticker)
     {
-      if(!relayConnection->sendTicker(ticker))
+      if(!zlimdbConnection->sendTicker(ticker))
         return false;
       return true;
     }
 
-    RelayConnection* relayConnection;
+    ZlimdbConnection* zlimdbConnection;
   } callback;
-  callback.relayConnection = &relayConnection;
+  callback.zlimdbConnection = &zlimdbConnection;
 
   for(;; Thread::sleep(10 * 1000))
   {
-    if(!relayConnection.isOpen())
+    if(!zlimdbConnection.isOpen())
     {
-      Console::printf("Connecting to relay server...\n");
-      if(!relayConnection.connect(port, channelName))
+      Console::printf("Connecting to zlimdb server...\n");
+      if(!zlimdbConnection.connect(channelName))
       {
-        Console::printf("Could not connect to relay server: %s\n", (const char_t*)relayConnection.getErrorString());
+        Console::printf("Could not connect to zlimdb server: %s\n", (const char_t*)zlimdbConnection.getErrorString());
         continue;
       }
       else
-        Console::printf("Connected to relay server.\n");
+        Console::printf("Connected to zlimdb server.\n");
     }
 
     if(!marketConnection.isOpen())
@@ -186,8 +179,8 @@ int_t main(int_t argc, char_t* argv[])
       if(!marketConnection.process(callback))
         break;
 
-    if(!relayConnection.isOpen())
-      Console::printf("Lost connection to relay server: %s\n", (const char_t*)relayConnection.getErrorString());
+    if(!zlimdbConnection.isOpen())
+      Console::printf("Lost connection to relay server: %s\n", (const char_t*)zlimdbConnection.getErrorString());
     if(!marketConnection.isOpen())
       Console::printf("Lost connection to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
     marketConnection.close(); // reconnect to reload the trade history

@@ -8,9 +8,9 @@
 class BtcChinaBtcCny : public Market
 {
 public:
-  BtcChinaBtcCny() : open(false), lastTradeId(0), timeOffset(0), timeOffsetSet(false) {}
+  BtcChinaBtcCny() : open(false), lastTradeId(0) {}
 
-  virtual String getChannelName() const {return String("BtcChina BTC/CNY");}
+  virtual String getChannelName() const {return String("BtcChina/BTC/CNY");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}
@@ -22,6 +22,4 @@ private:
   bool_t open;
 
   uint64_t lastTradeId;
-  timestamp_t timeOffset;
-  bool_t timeOffsetSet;
 };

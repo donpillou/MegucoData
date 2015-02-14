@@ -10,7 +10,7 @@ class KrakenBtcUsd : public Market
 public:
   KrakenBtcUsd() : open(false), lastId(0), lastTradeId(0) {}
 
-  virtual String getChannelName() const {return String("Kraken BTC/USD");}
+  virtual String getChannelName() const {return String("Kraken/BTC/USD");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}

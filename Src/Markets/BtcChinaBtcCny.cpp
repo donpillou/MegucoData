@@ -5,8 +5,8 @@
 #include <nstd/Variant.h>
 
 #include "Tools/Json.h"
-#include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
+
 #include "BtcChinaBtcCny.h"
 
 bool_t BtcChinaBtcCny::connect()
@@ -17,9 +17,6 @@ bool_t BtcChinaBtcCny::connect()
 
 bool_t BtcChinaBtcCny::process(Callback& callback)
 {
-  if(!callback.receivedTime(Time::time()))
-    return false;
-
   HttpRequest httpRequest;
   Buffer data;
   String dataStr;
@@ -46,20 +43,6 @@ bool_t BtcChinaBtcCny::process(Callback& callback)
     }
 
     const List<Variant>& tradesList = dataVar.toList();
-    if(!tradesList.isEmpty())
-    {
-      const HashMap<String, Variant>& tradeData = tradesList.back().toMap();
-      timestamp_t serverTime = tradeData.find("date")->toInt64() * 1000LL;
-      timestamp_t offset = serverTime - localTime;
-      if(offset < timeOffset || !timeOffsetSet)
-      {
-        timeOffset = offset;
-        timeOffsetSet = true;
-        if(!callback.receivedTime(serverTime))
-          return false;
-      }
-    }
-
     Trade trade;
     for(List<Variant>::Iterator i = tradesList.begin(), end = tradesList.end(); i != end; ++i)
     {

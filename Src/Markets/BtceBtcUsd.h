@@ -8,9 +8,9 @@
 class BtceBtcUsd : public Market
 {
 public:
-  BtceBtcUsd() : open(false), lastTradeId(0), lastTimestamp(0) {}
+  BtceBtcUsd() : open(false), lastTradeId(0) {}
 
-  virtual String getChannelName() const {return String("Btce BTC/USD");}
+  virtual String getChannelName() const {return String("Btce/BTC/USD");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}
@@ -22,6 +22,5 @@ private:
   bool_t open;
 
   uint64_t lastTradeId;
-  int64_t lastTimestamp;
 
 };

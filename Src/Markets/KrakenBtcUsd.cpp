@@ -5,8 +5,8 @@
 #include <nstd/Variant.h>
 
 #include "Tools/Json.h"
-#include "Tools/Math.h"
 #include "Tools/HttpRequest.h"
+
 #include "KrakenBtcUsd.h"
 
 bool_t KrakenBtcUsd::connect()
@@ -17,49 +17,9 @@ bool_t KrakenBtcUsd::connect()
 
 bool_t KrakenBtcUsd::process(Callback& callback)
 {
-  if(!callback.receivedTime(Time::time()))
-    return false;
-
   HttpRequest httpRequest;
   Buffer data;
   String dataStr;
-
-  //request server time
-  timestamp_t timeDiff = 0;
-  for(int i = 0; i < 3; ++i, Thread::sleep(3000))
-  {
-    if(!httpRequest.get("https://api.kraken.com/0/public/Time", data))
-    {
-      error = httpRequest.getErrorString();
-      open = false;
-      return false;
-    }
-
-
-    dataStr.attach((const char_t*)(byte_t*)data, data.size());
-    Variant dataVar;
-    if(!Json::parse(dataStr, dataVar))
-    {
-      error = "Could not parse trade data.";
-      open = false;
-      return false;
-    }
-    const HashMap<String, Variant>& dataMap = dataVar.toMap();
-    String error = dataMap.find("error")->toString();
-    if(!error.isEmpty())
-    {
-      this->error = error;;
-      open = false;
-      return false;
-    }
-
-    timestamp_t serverTime = dataMap.find("result")->toMap().find("unixtime")->toInt64() * 1000;
-    timestamp_t newTimeDiff = serverTime - Time::time();
-    if(newTimeDiff < timeDiff || i == 0)
-      timeDiff = newTimeDiff;
-  }
-  if(!callback.receivedTime(Time::time() + timeDiff))
-    return false;
 
   // receive trades
   for(;; Thread::sleep(14000))

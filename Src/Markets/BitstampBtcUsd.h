@@ -9,7 +9,7 @@ class BitstampBtcUsd : public Market
 public:
   BitstampBtcUsd() : lastPingTime(0), lastTickerTimer(0) {}
 
-  virtual String getChannelName() const {return String("Bitstamp BTC/USD");}
+  virtual String getChannelName() const {return String("Bitstamp/BTC/USD");}
   virtual bool_t connect();
   virtual void_t close() {websocket.close();}
   virtual bool_t isOpen() const {return websocket.isOpen();}

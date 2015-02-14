@@ -7,3 +7,9 @@
 [submodule "Ext/mare"]
 	path = Ext/mare
 	url = https://github.com/craflin/mare
+[submodule "Ext/libzlimdbclient"]
+	path = Ext/libzlimdbclient
+	url = https://github.com/craflin/libzlimdbclient.git
+[submodule "Ext/lz4"]
+	path = Ext/lz4
+	url = https://github.com/Cyan4973/lz4.git

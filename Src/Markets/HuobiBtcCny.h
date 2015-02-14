@@ -10,7 +10,7 @@ class HuobiBtcCny : public Market
 public:
   HuobiBtcCny() : open(false), lastTradeId(0) {}
 
-  virtual String getChannelName() const {return String("Huobi BTC/CNY");}
+  virtual String getChannelName() const {return String("Huobi/BTC/CNY");}
   virtual bool_t connect();
   virtual void_t close() {open = false;}
   virtual bool_t isOpen() const {return open;}

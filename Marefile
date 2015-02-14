@@ -1,54 +1,39 @@
 
+name = "MegucoData"
+
 markets = "Src/Markets/*.cpp"
 markets = "$(patsubst Src/Markets/%.cpp,%,$(markets))"
 markets -= "Main"
 
+buildDir = "Build/$(configuration)/$(target)"
+
 targets = {
 
-  MegucoData = cppApplication + {
-    dependencies = { "libnstd" } + markets
-    buildDir = "Build/$(configuration)"
-    includePaths = { "Ext/libnstd/include" }
-    libPaths = { "Build/$(configuration)/libnstd" }
-    libs = { "nstd" }
-    root = "Src"
-    files = {
-      "Src/**.cpp" = cppSource
-      "Src/**.h"
-    }
-    files -= { "Src/Markets/**" }
-    if tool == "vcxproj" {
-      libs += { "ws2_32" }
-      linkFlags += { "/SUBSYSTEM:CONSOLE" }
-    }
-    if platform == "Linux" {
-      libs += { "pthread", "rt" }
-      cppFlags += { "-Wno-delete-non-virtual-dtor" }
-    }
+  all = {
+    dependencies = markets
   }
   
   "$(markets)" = cppApplication + {
     folder = "Markets"
-    dependencies = { "libnstd" }
+    dependencies = { "libnstd", "libzlimdbclient", "liblz4" }
     defines += { "MARKET_$(upper $(target))" }
     buildDir = "Build/$(configuration)/Markets/$(target)"
-    output = "Build/$(configuration)/$(target)$(if $(Win32),.exe,)"
+    outputDir = "Build/$(configuration)"
     includePaths = {
       "Ext/libnstd/include"
-      "Src",
+      "Ext/libzlimdbclient/include"
       "Src/Markets",
     }
     libPaths = {
       "Build/$(configuration)/libnstd"
+      "Build/$(configuration)/libzlimdbclient"
+      "Build/$(configuration)/liblz4"
     }
-    libs = { "nstd", "curl" }
-    root = { "Src/Markets", "Src" }
+    libs = { "nstd", "curl", "zlimdbclient", "lz4" }
+    root = { "Src/Markets" }
     files = {
       "Src/Markets/$(target).cpp" = cppSource
       "Src/Markets/$(target).h"
-      "Src/Tools/Socket.cpp" = cppSource
-      "Src/Tools/Socket.h"
-      "Src/DataProtocol.h"
       "Src/Markets/Tools/**.cpp" = cppSource
       "Src/Markets/Tools/**.h"
       "Src/Markets/Main.cpp" = cppSource
@@ -72,23 +57,28 @@ targets = {
     }
   }
 
-  libnstd = cppStaticLibrary + {
+  include "Ext/libnstd/libnstd.mare"
+  libnstd += {
     folder = "Libraries"
-    includePaths = { "Ext/libnstd/include" }
-    buildDir = "Build/$(configuration)/$(target)"
-    root = { "Ext/libnstd/src", "Ext/libnstd/include/nstd" }
+  }
+
+  include "Ext/libzlimdbclient/libzlimdbclient.mare"
+  libzlimdbclient += {
+    folder = "Libraries"
+  }
+  
+  liblz4 = cppStaticLibrary + {
+    folder = "Libraries"
+    includePaths = { "Ext/lz4" }
+    root = { "Ext/lz4" }
     files = {
-      "Ext/libnstd/src/*.cpp" = cppSource,
-      "Ext/libnstd/include/nstd/*.h"
-    }
-    if tool == "vcxproj" {
-      defines += { "_CRT_SECURE_NO_WARNINGS" }
+      "Ext/lz4/lz4.c" = cSource,
+      "Ext/lz4/lz4.h"
     }
   }
 
   if tool == "vcxproj" {
     libcurl = cStaticLibrary + {
-      buildDir = "Build/$(configuration)/$(target)"
       folder = "Libraries"
       root = { "Ext/curl/lib", "Ext/curl/include" }
       defines += { "$(if $(Win32),WIN32 _WINDOWS)", "_USRDLL", "BUILDING_LIBCURL", "CURL_STATICLIB", "HTTP_ONLY", "USE_WINDOWS_SSPI", "USE_SCHANNEL" /*"USE_SSLEAY", "USE_OPENSSL"*/ }
