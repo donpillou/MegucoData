@@ -1,4 +1,5 @@
 
+#include <nstd/Error.h>
 #include <nstd/Debug.h>
 
 #include <zlimdbclient.h>
@@ -44,12 +45,12 @@ bool_t ZlimdbConnection::connect(const String& channelName)
   zdb = zlimdb_create(0, 0);
   if(!zdb)
   {
-    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    error = getZlimdbError();
     return false;
   }
   if(zlimdb_connect(zdb, 0, 0, "root", "root") != 0)
   {
-    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    error = getZlimdbError();
     zlimdb_free(zdb);
     zdb = 0;
     return false;
@@ -58,7 +59,7 @@ bool_t ZlimdbConnection::connect(const String& channelName)
   // create trades table
   if(zlimdb_add_table(zdb, String("markets/") + channelName + "/trades", &tradesTableId) != 0)
   {
-    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    error = getZlimdbError();
     zlimdb_free(zdb);
     zdb = 0;
     return false;
@@ -67,7 +68,7 @@ bool_t ZlimdbConnection::connect(const String& channelName)
   // create ticker table
   if(zlimdb_add_table(zdb, String("markets/") + channelName + "/ticker", &tickerTableId) != 0)
   {
-    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    error = getZlimdbError();
     zlimdb_free(zdb);
     zdb = 0;
     return false;
@@ -102,7 +103,7 @@ bool_t ZlimdbConnection::sendTrade(const Market::Trade& trade)
   {
     if(zlimdb_errno() == zlimdb_error_entity_id)
       return true;
-    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    error = getZlimdbError();
     return false;
   }
   return true;
@@ -120,8 +121,20 @@ bool_t ZlimdbConnection::sendTicker(const Market::Ticker& ticker)
   {
     if(zlimdb_errno() == zlimdb_error_entity_id)
       return true;
-    error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
+    error = getZlimdbError();
     return false;
   }
   return true;
+}
+
+String ZlimdbConnection::getZlimdbError()
+{
+  int err = zlimdb_errno();
+  if(err == zlimdb_local_error_system)
+    return Error::getErrorString();
+  else
+  {
+    const char* errstr = zlimdb_strerror(err);
+    return String(errstr, String::length(errstr));
+  }
 }

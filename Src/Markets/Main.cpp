@@ -156,7 +156,7 @@ int_t main(int_t argc, char_t* argv[])
       Console::printf("Connecting to zlimdb server...\n");
       if(!zlimdbConnection.connect(channelName))
       {
-        Console::printf("Could not connect to zlimdb server: %s\n", (const char_t*)zlimdbConnection.getErrorString());
+        Console::errorf("error: Could not connect to zlimdb server: %s\n", (const char_t*)zlimdbConnection.getErrorString());
         continue;
       }
       else
@@ -168,7 +168,7 @@ int_t main(int_t argc, char_t* argv[])
       Console::printf("Connecting to %s...\n", (const char_t*)channelName);
       if(!marketConnection.connect())
       {
-        Console::printf("Could not connect to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
+        Console::errorf("error: Could not connect to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
         continue;
       }
       else
@@ -180,9 +180,9 @@ int_t main(int_t argc, char_t* argv[])
         break;
 
     if(!zlimdbConnection.isOpen())
-      Console::printf("Lost connection to relay server: %s\n", (const char_t*)zlimdbConnection.getErrorString());
+      Console::errorf("error: Lost connection to zlimdb server: %s\n", (const char_t*)zlimdbConnection.getErrorString());
     if(!marketConnection.isOpen())
-      Console::printf("Lost connection to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
+      Console::errorf("error: Lost connection to %s: %s\n", (const char_t*)channelName, (const char_t*)marketConnection.getErrorString());
     marketConnection.close(); // reconnect to reload the trade history
   }
 

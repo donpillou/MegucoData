@@ -25,4 +25,7 @@ private:
   _zlimdb* zdb;
   uint32_t tradesTableId;
   uint32_t tickerTableId;
+
+private:
+  static String getZlimdbError();
 };
