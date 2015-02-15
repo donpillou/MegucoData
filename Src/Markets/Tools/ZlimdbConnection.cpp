@@ -1,4 +1,6 @@
 
+#include <nstd/Debug.h>
+
 #include <zlimdbclient.h>
 
 #include "ZlimdbConnection.h"
@@ -18,6 +20,21 @@ public:
   double bid;
   double ask;
 };
+
+#ifdef _WIN32
+static class ZlimdbFramework
+{
+public:
+  ZlimdbFramework()
+  {
+    VERIFY(zlimdb_init() == 0);
+  }
+  ~ZlimdbFramework()
+  {
+    VERIFY(zlimdb_cleanup() == 0);
+  }
+} zlimdbFramework;
+#endif
 
 bool_t ZlimdbConnection::connect(const String& channelName)
 {
@@ -39,7 +56,7 @@ bool_t ZlimdbConnection::connect(const String& channelName)
   }
 
   // create trades table
-  if(zlimdb_add_table(zdb, channelName + "/trades", &tradesTableId) != 0)
+  if(zlimdb_add_table(zdb, String("markets/") + channelName + "/trades", &tradesTableId) != 0)
   {
     error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
     zlimdb_free(zdb);
@@ -48,7 +65,7 @@ bool_t ZlimdbConnection::connect(const String& channelName)
   }
 
   // create ticker table
-  if(zlimdb_add_table(zdb, channelName + "/ticker", &tradesTableId) != 0)
+  if(zlimdb_add_table(zdb, String("markets/") + channelName + "/ticker", &tickerTableId) != 0)
   {
     error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
     zlimdb_free(zdb);
@@ -83,6 +100,8 @@ bool_t ZlimdbConnection::sendTrade(const Market::Trade& trade)
   tradeEntity.flags = trade.flags;
   if(zlimdb_add(zdb, tradesTableId, &tradeEntity.entity) != 0)
   {
+    if(zlimdb_errno() == zlimdb_error_entity_id)
+      return true;
     error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
     return false;
   }
@@ -97,8 +116,10 @@ bool_t ZlimdbConnection::sendTicker(const Market::Ticker& ticker)
   tickerEntity.entity.size = sizeof(tickerEntity);
   tickerEntity.ask = ticker.ask;
   tickerEntity.bid = ticker.bid;
-  if(zlimdb_add(zdb, tradesTableId, &tickerEntity.entity) != 0)
+  if(zlimdb_add(zdb, tickerTableId, &tickerEntity.entity) != 0)
   {
+    if(zlimdb_errno() == zlimdb_error_entity_id)
+      return true;
     error.printf("%s.", zlimdb_strerror(zlimdb_errno()));
     return false;
   }
