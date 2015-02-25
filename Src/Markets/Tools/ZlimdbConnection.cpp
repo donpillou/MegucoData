@@ -3,24 +3,9 @@
 #include <nstd/Debug.h>
 
 #include <zlimdbclient.h>
+#include <megucoprotocol.h>
 
 #include "ZlimdbConnection.h"
-
-struct zlimdb_trade_entity
-{
-  zlimdb_entity entity;
-  double price;
-  double amount;
-  uint32_t flags;
-};
-
-struct zlimdb_ticker_entity
-{
-public:
-  zlimdb_entity entity;
-  double bid;
-  double ask;
-};
 
 #ifdef _WIN32
 static class ZlimdbFramework
@@ -92,7 +77,7 @@ bool_t ZlimdbConnection::isOpen() const
 
 bool_t ZlimdbConnection::sendTrade(const Market::Trade& trade)
 {
-  zlimdb_trade_entity tradeEntity;
+  meguco_trade_entity tradeEntity;
   tradeEntity.entity.id = trade.id;
   tradeEntity.entity.time = trade.time;
   tradeEntity.entity.size = sizeof(tradeEntity);
@@ -111,7 +96,7 @@ bool_t ZlimdbConnection::sendTrade(const Market::Trade& trade)
 
 bool_t ZlimdbConnection::sendTicker(const Market::Ticker& ticker)
 {
-  zlimdb_ticker_entity tickerEntity;
+  meguco_ticker_entity tickerEntity;
   tickerEntity.entity.id = 0;
   tickerEntity.entity.time = ticker.time;
   tickerEntity.entity.size = sizeof(tickerEntity);

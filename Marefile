@@ -22,6 +22,7 @@ targets = {
     includePaths = {
       "Ext/libnstd/include"
       "Ext/libzlimdbclient/include"
+      "Ext/libmegucoprotocol/include"
       "Src/Markets",
     }
     libPaths = {
