@@ -31,7 +31,6 @@ bool_t BtcChinaBtcCny::process(Callback& callback)
       open = false;
       return false;
     }
-    timestamp_t localTime = Time::time();
 
     dataStr.attach((const char_t*)(byte_t*)data, data.size());
     Variant dataVar;
