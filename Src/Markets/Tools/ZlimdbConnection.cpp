@@ -7,7 +7,6 @@
 
 #include "ZlimdbConnection.h"
 
-#ifdef _WIN32
 static class ZlimdbFramework
 {
 public:
@@ -20,7 +19,6 @@ public:
     VERIFY(zlimdb_cleanup() == 0);
   }
 } zlimdbFramework;
-#endif
 
 bool_t ZlimdbConnection::connect(const String& channelName)
 {
