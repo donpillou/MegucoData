@@ -117,7 +117,7 @@ bool_t Websocket::connect(const String& url)
     error.printf("%s.", curl_easy_strerror(status));
     return false;
   }
-  this->s = (void_t*)s;
+  this->s = (void_t*)(intptr_t)s;
 
   // send header
   String buffer(1500);
@@ -429,8 +429,8 @@ bool_t Websocket::sendAll(const byte_t* data, size_t size)
   timeval tv = { (long)(timeout / 1000L), (long)((timeout % 1000LL)) * 1000L };
   for(;;)
   {
-    FD_SET((SOCKET)s, &writefds);
-    int ret = select((SOCKET)s + 1, 0, &writefds, 0, &tv);
+    FD_SET((SOCKET)(intptr_t)s, &writefds);
+    int ret = select((SOCKET)(intptr_t)s + 1, 0, &writefds, 0, &tv);
     if(ret < 0)
     {
       error = getSocketErrorString();
@@ -462,8 +462,8 @@ bool_t Websocket::receive(byte_t* data, size_t size, timestamp_t timeout, size_t
   timeval tv = { (long)(timeout / 1000L), (long)((timeout % 1000LL)) * 1000L };
   for(;;)
   {
-    FD_SET((SOCKET)s, &readfds);
-    int ret = select((SOCKET)s + 1, &readfds, 0, 0, &tv);
+    FD_SET((SOCKET)(intptr_t)s, &readfds);
+    int ret = select((SOCKET)(intptr_t)s + 1, &readfds, 0, 0, &tv);
     if(ret < 0)
     {
       error = getSocketErrorString();
